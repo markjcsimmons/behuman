@@ -4,42 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify You Are Human</title>
+    <meta name="description" content="I'm human. Are you? Complete a simple test to verify you are human.">
+    <link rel="canonical" href="https://markjcsimmons.github.io/behuman/">
     
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook / WhatsApp / iMessage / Telegram -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="">
+    <meta property="og:url" content="https://markjcsimmons.github.io/behuman/">
     <meta property="og:title" content="Verify You Are Human">
     <meta property="og:description" content="I'm human. Are you? Complete a simple test to verify you are human.">
-    <meta property="og:image" content="">
+    <meta property="og:site_name" content="BeHuman">
+    <meta property="og:image" content="https://markjcsimmons.github.io/behuman/badge.png">
+    <meta property="og:image:secure_url" content="https://markjcsimmons.github.io/behuman/badge.png">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Verified Human Badge">
+    
+    <!-- Apple / iMessage specific -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://markjcsimmons.github.io/behuman/badge.png">
     
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="">
-    <meta property="twitter:title" content="Verify You Are Human">
-    <meta property="twitter:description" content="I'm human. Are you? Complete a simple test to verify you are human.">
-    <meta property="twitter:image" content="">
-    
-    <script>
-        // Set dynamic URLs for social sharing
-        (function() {
-            const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
-            const imageUrl = baseUrl + '/badge.png';
-            const urlMeta = window.location.href.split('?')[0]; // Remove query params
-            
-            const ogUrl = document.querySelector('meta[property="og:url"]');
-            const ogImage = document.querySelector('meta[property="og:image"]');
-            const twitterUrl = document.querySelector('meta[property="twitter:url"]');
-            const twitterImage = document.querySelector('meta[property="twitter:image"]');
-            
-            if (ogUrl) ogUrl.setAttribute('content', urlMeta);
-            if (ogImage) ogImage.setAttribute('content', imageUrl);
-            if (twitterUrl) twitterUrl.setAttribute('content', urlMeta);
-            if (twitterImage) twitterImage.setAttribute('content', imageUrl);
-        })();
-    </script>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://markjcsimmons.github.io/behuman/">
+    <meta name="twitter:title" content="Verify You Are Human">
+    <meta name="twitter:description" content="I'm human. Are you? Complete a simple test to verify you are human.">
+    <meta name="twitter:image" content="https://markjcsimmons.github.io/behuman/badge.png">
+    <meta name="twitter:image:alt" content="Verified Human Badge">
     <style>
         * {
             margin: 0;
@@ -55,7 +47,7 @@
             align-items: flex-start;
             min-height: 100vh;
             padding: 20px;
-            padding-top: 10vh;
+            padding-top: 20vh;
             margin: 0;
         }
 
