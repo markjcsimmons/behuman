@@ -19,6 +19,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            margin: 0;
         }
 
         .container {
@@ -26,6 +27,10 @@
             max-width: 500px;
             width: 100%;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         #initial-screen {
@@ -290,7 +295,7 @@
             if (navigator.share) {
                 navigator.share({
                     title: 'Verify You Are Human',
-                    text: 'I verified I am human. Can you verify you are human too?',
+                    text: "I'm human. Are you?",
                     url: shareUrl
                 }).then(() => {
                     // Share was successful
