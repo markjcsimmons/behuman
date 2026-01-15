@@ -4,6 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify You Are Human</title>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:title" content="Verify You Are Human">
+    <meta property="og:description" content="I'm human. Are you? Complete a simple test to verify you are human.">
+    <meta property="og:image" content="">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="">
+    <meta property="twitter:title" content="Verify You Are Human">
+    <meta property="twitter:description" content="I'm human. Are you? Complete a simple test to verify you are human.">
+    <meta property="twitter:image" content="">
+    
+    <script>
+        // Set dynamic URLs for social sharing
+        (function() {
+            const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
+            const imageUrl = baseUrl + '/badge.png';
+            const urlMeta = window.location.href.split('?')[0]; // Remove query params
+            
+            const ogUrl = document.querySelector('meta[property="og:url"]');
+            const ogImage = document.querySelector('meta[property="og:image"]');
+            const twitterUrl = document.querySelector('meta[property="twitter:url"]');
+            const twitterImage = document.querySelector('meta[property="twitter:image"]');
+            
+            if (ogUrl) ogUrl.setAttribute('content', urlMeta);
+            if (ogImage) ogImage.setAttribute('content', imageUrl);
+            if (twitterUrl) twitterUrl.setAttribute('content', urlMeta);
+            if (twitterImage) twitterImage.setAttribute('content', imageUrl);
+        })();
+    </script>
     <style>
         * {
             margin: 0;
@@ -16,9 +52,10 @@
             background-color: #e0e0e0;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             padding: 20px;
+            padding-top: 10vh;
             margin: 0;
         }
 
@@ -290,12 +327,13 @@
         function shareVerification() {
             const shareUrl = window.location.origin + window.location.pathname + '?shared=true';
             const shareMessage = document.getElementById('share-message');
+            const shareText = "I'm human. Are you? " + shareUrl;
 
             // Always try Web Share API first if available (browser will handle security restrictions)
             if (navigator.share) {
                 navigator.share({
                     title: 'Verify You Are Human',
-                    text: "I'm human. Are you?",
+                    text: shareText,
                     url: shareUrl
                 }).then(() => {
                     // Share was successful
@@ -308,12 +346,12 @@
                     // If user cancelled (AbortError), do nothing
                     // For other errors, fallback to clipboard
                     if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
-                        copyToClipboard(shareUrl, shareMessage);
+                        copyToClipboard(shareText, shareMessage);
                     }
                 });
             } else {
                 // Web Share API not available - fallback to clipboard
-                copyToClipboard(shareUrl, shareMessage);
+                copyToClipboard(shareText, shareMessage);
             }
         }
 

@@ -1,0 +1,24 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#34a853;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d8f47;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#e0e0e0"/>
+  
+  <!-- Lozenge container -->
+  <rect x="200" y="115" width="800" height="400" rx="20" fill="white" stroke="none"/>
+  
+  <!-- Checkmark circle -->
+  <circle cx="600" cy="250" r="80" fill="url(#grad)"/>
+  <path d="M 570 250 L 590 270 L 630 230" stroke="white" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Text -->
+  <text x="600" y="380" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="500" fill="#333" text-anchor="middle">Verified Human</text>
+  
+  <!-- Shadow -->
+  <rect x="200" y="115" width="800" height="400" rx="20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
+</svg>
