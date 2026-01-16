@@ -298,6 +298,43 @@
                     background-color: #4285f4 !important;
                     color: white !important;
                 }
+                
+                .behuman-reset-button {
+                    position: absolute;
+                    top: 15px;
+                    right: 15px;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background-color: #f5f5f5;
+                    border: 1px solid #ddd;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    color: #666;
+                    transition: all 0.2s;
+                    z-index: 10;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                }
+                
+                .behuman-reset-button:hover {
+                    background-color: #e0e0e0;
+                    color: #333;
+                }
+                
+                .behuman-reset-button:active {
+                    transform: scale(0.95);
+                }
+                
+                #behuman-initial-screen,
+                #behuman-statements-screen,
+                #behuman-result-screen,
+                #behuman-ledger-screen,
+                #behuman-instructions-modal {
+                    position: relative;
+                }
             `;
             document.head.appendChild(style);
         },
@@ -311,12 +348,14 @@
             overlay.innerHTML = `
                 <div id="behuman-modal">
                     <div id="behuman-initial-screen">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <h1>Verify You Are Human</h1>
                         <p>Please complete a simple test to confirm you are a human.</p>
                         <button class="behuman-btn" id="behuman-start-btn">Click here to begin</button>
                     </div>
                     
                     <div id="behuman-statements-screen">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <div class="behuman-statement-item">
                             <input type="checkbox" id="behuman-stmt1">
                             <label for="behuman-stmt1">Cruelty is not strength</label>
@@ -351,6 +390,7 @@
                     </div>
                     
                     <div id="behuman-result-screen">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <div class="behuman-check-icon" id="behuman-result-icon"></div>
                         <h2 id="behuman-result-text"></h2>
                         <div id="behuman-share-container" style="display: none; margin-top: 20px; width: 100%;">
@@ -365,6 +405,7 @@
                     </div>
                     
                     <div id="behuman-ledger-screen" style="display: none; text-align: left; background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <h3 style="font-size: 24px; font-weight: 500; color: #333; margin-bottom: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">Join the Human Ledger</h3>
                         <form id="behuman-ledger-form">
                             <div style="margin-bottom: 20px;">
@@ -407,6 +448,7 @@
             instructionsOverlay.id = 'behuman-instructions-overlay';
             instructionsOverlay.innerHTML = `
                 <div id="behuman-instructions-modal" onclick="event.stopPropagation()">
+                    <button class="behuman-reset-button" onclick="BeHuman.resetToHome(); BeHuman.closeWidgetInstructions();" title="Reset" style="top: 15px; right: 50px;">↻</button>
                     <button id="behuman-instructions-close">×</button>
                     <h3>Add Widget to Your Website</h3>
                     <p>Add this single line to your HTML:</p>
@@ -519,6 +561,10 @@
         
         // Reset to initial state
         reset: function() {
+            this.resetToHome();
+        },
+        
+        resetToHome: function() {
             document.getElementById('behuman-initial-screen').style.display = 'block';
             document.getElementById('behuman-statements-screen').style.display = 'none';
             document.getElementById('behuman-result-screen').style.display = 'none';
@@ -528,6 +574,25 @@
             for (let i = 1; i <= 7; i++) {
                 const checkbox = document.getElementById('behuman-stmt' + i);
                 if (checkbox) checkbox.checked = false;
+            }
+            
+            // Reset ledger form if it exists
+            const ledgerForm = document.getElementById('behuman-ledger-form');
+            if (ledgerForm) {
+                ledgerForm.reset();
+                const submitBtn = document.querySelector('#behuman-ledger-form button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.textContent = 'Add my name';
+                    submitBtn.disabled = false;
+                    submitBtn.style.backgroundColor = '#4285f4';
+                    submitBtn.style.cursor = 'pointer';
+                }
+            }
+            
+            // Close widget instructions if open
+            const widgetInstructions = document.getElementById('behuman-instructions-overlay');
+            if (widgetInstructions) {
+                widgetInstructions.style.display = 'none';
             }
         },
         
