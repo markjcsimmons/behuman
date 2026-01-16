@@ -303,8 +303,8 @@
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    width: 40px;
-                    height: 40px;
+                    width: 32px;
+                    height: 32px;
                     border-radius: 50%;
                     background-color: #f5f5f5;
                     border: 1px solid #ddd;
@@ -312,7 +312,7 @@
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 20px;
+                    font-size: 16px;
                     color: #666;
                     transition: all 0.2s;
                     z-index: 1000001;
