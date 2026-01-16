@@ -393,6 +393,7 @@
                             <button class="behuman-btn" id="behuman-share-btn" style="width: 100%;">Tell others you are human</button>
                             <p id="behuman-share-message" style="margin-top: 10px; font-size: 12px; color: #666; display: none;">Link copied to clipboard!</p>
                             <button class="behuman-btn" id="behuman-widget-btn" style="margin-top: 15px; background-color: #34a853; width: 100%;">Add widget to your website</button>
+                            <button class="behuman-btn" id="behuman-download-badge-btn" style="margin-top: 15px; background-color: #e0e0e0; color: #333; width: 100%;">Download Verified Human badge</button>
                         </div>
                         <div id="behuman-try-again-container" style="display: none; margin-top: 20px;">
                             <button class="behuman-btn" id="behuman-try-again-btn">Try again</button>
@@ -465,6 +466,11 @@
             // Copy script button
             document.getElementById('behuman-copy-script-btn').addEventListener('click', function() {
                 self.copyWidgetScript();
+            });
+            
+            // Download badge button
+            document.getElementById('behuman-download-badge-btn').addEventListener('click', function() {
+                self.downloadBadge();
             });
             
             // Close on overlay click (outside modal)
@@ -605,6 +611,62 @@
             } else {
                 this.fallbackCopyToClipboard(text, messageElement);
             }
+        },
+        
+        // Download badge
+        downloadBadge: function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 800, 400);
+            
+            // Draw green checkmark circle
+            const centerX = 400;
+            const centerY = 150;
+            const radius = 60;
+            
+            // Gradient for circle
+            const gradient = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+            gradient.addColorStop(0, '#34a853');
+            gradient.addColorStop(1, '#2d8f47');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw white checkmark
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 10;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(centerX - 25, centerY);
+            ctx.lineTo(centerX - 5, centerY + 20);
+            ctx.lineTo(centerX + 25, centerY - 20);
+            ctx.stroke();
+            
+            // Draw "Verified Human" text
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 48px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Verified Human', centerX, centerY + 120);
+            
+            // Convert to blob and download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'verified-human-badge.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
         },
         
         // Fallback copy method
