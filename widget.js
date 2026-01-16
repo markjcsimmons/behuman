@@ -300,9 +300,9 @@
                 }
                 
                 .behuman-reset-button {
-                    position: absolute;
-                    top: 15px;
-                    right: 15px;
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
                     width: 40px;
                     height: 40px;
                     border-radius: 50%;
@@ -315,7 +315,7 @@
                     font-size: 20px;
                     color: #666;
                     transition: all 0.2s;
-                    z-index: 10;
+                    z-index: 1000001;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 }
                 
@@ -328,13 +328,6 @@
                     transform: scale(0.95);
                 }
                 
-                #behuman-initial-screen,
-                #behuman-statements-screen,
-                #behuman-result-screen,
-                #behuman-ledger-screen,
-                #behuman-instructions-modal {
-                    position: relative;
-                }
             `;
             document.head.appendChild(style);
         },
@@ -345,17 +338,23 @@
             overlay.id = 'behuman-overlay';
             overlay.style.display = 'none';
             
+            // Create reset button outside modal
+            const resetButton = document.createElement('button');
+            resetButton.className = 'behuman-reset-button';
+            resetButton.onclick = () => { this.resetToHome(); };
+            resetButton.title = 'Reset';
+            resetButton.textContent = '↻';
+            document.body.appendChild(resetButton);
+            
             overlay.innerHTML = `
                 <div id="behuman-modal">
                     <div id="behuman-initial-screen">
-                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <h1>Verify You Are Human</h1>
                         <p>Please complete a simple test to confirm you are a human.</p>
                         <button class="behuman-btn" id="behuman-start-btn">Click here to begin</button>
                     </div>
                     
                     <div id="behuman-statements-screen">
-                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <div class="behuman-statement-item">
                             <input type="checkbox" id="behuman-stmt1">
                             <label for="behuman-stmt1">Cruelty is not strength</label>
@@ -390,7 +389,6 @@
                     </div>
                     
                     <div id="behuman-result-screen">
-                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <div class="behuman-check-icon" id="behuman-result-icon"></div>
                         <h2 id="behuman-result-text"></h2>
                         <div id="behuman-share-container" style="display: none; margin-top: 20px; width: 100%;">
@@ -405,7 +403,6 @@
                     </div>
                     
                     <div id="behuman-ledger-screen" style="display: none; text-align: left; background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);">
-                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <h3 style="font-size: 24px; font-weight: 500; color: #333; margin-bottom: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">Join the Human Ledger</h3>
                         <form id="behuman-ledger-form">
                             <div style="margin-bottom: 20px;">
@@ -448,7 +445,6 @@
             instructionsOverlay.id = 'behuman-instructions-overlay';
             instructionsOverlay.innerHTML = `
                 <div id="behuman-instructions-modal" onclick="event.stopPropagation()">
-                    <button class="behuman-reset-button" onclick="BeHuman.resetToHome(); BeHuman.closeWidgetInstructions();" title="Reset" style="top: 15px; right: 50px;">↻</button>
                     <button id="behuman-instructions-close">×</button>
                     <h3>Add Widget to Your Website</h3>
                     <p>Add this single line to your HTML:</p>
