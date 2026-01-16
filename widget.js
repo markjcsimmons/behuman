@@ -194,6 +194,98 @@
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 }
                 
+                #behuman-captcha-screen {
+                    display: none;
+                    text-align: left;
+                    background-color: white;
+                    border-radius: 8px;
+                    padding: 30px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                    position: relative;
+                }
+                
+                .behuman-captcha-banner {
+                    background-color: #4285f4;
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 4px;
+                    margin-bottom: 20px;
+                    text-align: center;
+                }
+                
+                .behuman-captcha-banner-text {
+                    font-size: 16px;
+                    font-weight: 400;
+                }
+                
+                .behuman-captcha-banner-text strong {
+                    font-size: 20px;
+                    font-weight: 600;
+                    font-style: italic;
+                }
+                
+                .behuman-captcha-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 10px;
+                    margin-bottom: 20px;
+                }
+                
+                .behuman-captcha-image-container {
+                    position: relative;
+                    width: 100%;
+                    padding-top: 100%;
+                    border: 2px solid #ddd;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    overflow: hidden;
+                    background-color: #f5f5f5;
+                }
+                
+                .behuman-captcha-image-container.selected {
+                    border-color: #4285f4;
+                    border-width: 3px;
+                }
+                
+                .behuman-captcha-image-container img {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                
+                .behuman-captcha-controls {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 20px;
+                }
+                
+                .behuman-captcha-icons {
+                    display: flex;
+                    gap: 10px;
+                }
+                
+                .behuman-captcha-icon {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background-color: #f5f5f5;
+                    border: 1px solid #ddd;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 18px;
+                    color: #666;
+                }
+                
+                .behuman-captcha-icon:hover {
+                    background-color: #e0e0e0;
+                }
+                
                 @media (max-width: 480px) {
                     #behuman-initial-screen {
                         padding: 30px 20px;
@@ -385,6 +477,25 @@
                         </div>
                     </div>
                     
+                    <!-- CAPTCHA Screen -->
+                    <div id="behuman-captcha-screen">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
+                        <div class="behuman-captcha-banner">
+                            <div class="behuman-captcha-banner-text">Select all images with <strong>a human</strong></div>
+                        </div>
+                        <div class="behuman-captcha-grid" id="behuman-captcha-grid">
+                            <!-- Images will be dynamically loaded here -->
+                        </div>
+                        <div class="behuman-captcha-controls">
+                            <div class="behuman-captcha-icons">
+                                <div class="behuman-captcha-icon" onclick="BeHuman.refreshCaptcha()" title="Refresh">↻</div>
+                                <div class="behuman-captcha-icon" title="Audio">🔊</div>
+                                <div class="behuman-captcha-icon" title="Info">ℹ</div>
+                            </div>
+                            <button class="behuman-btn" onclick="BeHuman.verifyCaptcha()" style="background-color: #4285f4;">VERIFY</button>
+                        </div>
+                    </div>
+                    
                     <div id="behuman-result-screen">
                         <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <div class="behuman-check-icon" id="behuman-result-icon"></div>
@@ -533,9 +644,18 @@
             for (let i = 1; i <= 7; i++) {
                 checkboxes.push(document.getElementById('behuman-stmt' + i));
             }
-            
+
             const allChecked = checkboxes.every(cb => cb.checked);
-            this.showResult(allChecked);
+            
+            if (allChecked) {
+                // Show CAPTCHA screen
+                document.getElementById('behuman-statements-screen').style.display = 'none';
+                document.getElementById('behuman-captcha-screen').style.display = 'block';
+                this.loadCaptchaImages();
+            } else {
+                // Show robot screen
+                this.showResult(false);
+            }
         },
         
         // Show result
@@ -667,6 +787,86 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }, 'image/png');
+        },
+        
+        // CAPTCHA functions
+        captchaSelectedImages: [],
+        captchaCorrectImages: [], // Indices of images that contain humans
+        
+        loadCaptchaImages: function() {
+            const grid = document.getElementById('behuman-captcha-grid');
+            grid.innerHTML = '';
+            this.captchaSelectedImages = [];
+            
+            // For now, use placeholder images. Later we'll create a script to change these.
+            // Using placeholder.com for now - in production, these will be actual images
+            const imageUrls = [
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+1',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+2',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+3',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+4',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+5',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+6',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+7',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+8',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+9'
+            ];
+            
+            // For now, randomly assign which images contain humans (indices 1, 3, 5 for example)
+            // Later this will be determined by the actual images
+            this.captchaCorrectImages = [1, 3, 5]; // Example: images at indices 1, 3, and 5 contain humans
+            
+            const self = this;
+            imageUrls.forEach((url, index) => {
+                const container = document.createElement('div');
+                container.className = 'behuman-captcha-image-container';
+                container.dataset.index = index;
+                container.onclick = function() {
+                    self.toggleCaptchaImage(index);
+                };
+                
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'CAPTCHA image ' + (index + 1);
+                img.loading = 'lazy';
+                
+                container.appendChild(img);
+                grid.appendChild(container);
+            });
+        },
+        
+        toggleCaptchaImage: function(index) {
+            const container = document.querySelector(`.behuman-captcha-image-container[data-index="${index}"]`);
+            const isSelected = this.captchaSelectedImages.includes(index);
+            
+            if (isSelected) {
+                this.captchaSelectedImages = this.captchaSelectedImages.filter(i => i !== index);
+                container.classList.remove('selected');
+            } else {
+                this.captchaSelectedImages.push(index);
+                container.classList.add('selected');
+            }
+        },
+        
+        verifyCaptcha: function() {
+            // Check if all correct images are selected and no incorrect ones
+            const selectedCorrect = this.captchaCorrectImages.every(idx => this.captchaSelectedImages.includes(idx));
+            const selectedIncorrect = this.captchaSelectedImages.some(idx => !this.captchaCorrectImages.includes(idx));
+            const allCorrectSelected = this.captchaCorrectImages.length === this.captchaSelectedImages.length;
+            
+            if (selectedCorrect && !selectedIncorrect && allCorrectSelected) {
+                // All correct images selected, none incorrect
+                document.getElementById('behuman-captcha-screen').style.display = 'none';
+                this.showResult(true);
+            } else {
+                // Wrong selection - show robot screen
+                document.getElementById('behuman-captcha-screen').style.display = 'none';
+                this.showResult(false);
+            }
+        },
+        
+        refreshCaptcha: function() {
+            this.loadCaptchaImages();
         },
         
         // Fallback copy method

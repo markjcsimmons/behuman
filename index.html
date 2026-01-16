@@ -184,6 +184,98 @@
             margin-bottom: 10px;
         }
 
+        #captcha-screen {
+            display: none;
+            text-align: left;
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+
+        .captcha-banner {
+            background-color: #4285f4;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .captcha-banner-text {
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .captcha-banner-text strong {
+            font-size: 20px;
+            font-weight: 600;
+            font-style: italic;
+        }
+
+        .captcha-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .captcha-image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 100%;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            overflow: hidden;
+            background-color: #f5f5f5;
+        }
+
+        .captcha-image-container.selected {
+            border-color: #4285f4;
+            border-width: 3px;
+        }
+
+        .captcha-image-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .captcha-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .captcha-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .captcha-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .captcha-icon:hover {
+            background-color: #e0e0e0;
+        }
+
         @media (max-width: 480px) {
             #initial-screen {
                 padding: 30px 20px;
@@ -356,6 +448,25 @@
             </div>
         </div>
 
+        <!-- CAPTCHA Screen -->
+        <div id="captcha-screen">
+            <button class="reset-button" onclick="resetToHome()" title="Reset">↻</button>
+            <div class="captcha-banner">
+                <div class="captcha-banner-text">Select all images with <strong>a human</strong></div>
+            </div>
+            <div class="captcha-grid" id="captcha-grid">
+                <!-- Images will be dynamically loaded here -->
+            </div>
+            <div class="captcha-controls">
+                <div class="captcha-icons">
+                    <div class="captcha-icon" onclick="refreshCaptcha()" title="Refresh">↻</div>
+                    <div class="captcha-icon" title="Audio">🔊</div>
+                    <div class="captcha-icon" title="Info">ℹ</div>
+                </div>
+                <button class="btn" onclick="verifyCaptcha()" style="background-color: #4285f4;">VERIFY</button>
+            </div>
+        </div>
+
         <!-- Result Screen -->
         <div id="result-screen" class="result">
             <button class="reset-button" onclick="resetToHome()" title="Reset">↻</button>
@@ -405,7 +516,16 @@
             ];
 
             const allChecked = checkboxes.every(cb => cb.checked);
-            showResult(allChecked);
+            
+            if (allChecked) {
+                // Show CAPTCHA screen
+                document.getElementById('statements-screen').style.display = 'none';
+                document.getElementById('captcha-screen').style.display = 'block';
+                loadCaptchaImages();
+            } else {
+                // Show robot screen
+                showResult(false);
+            }
         }
 
         function showResult(isVerified) {
@@ -466,12 +586,92 @@
             // Show initial screen and hide others
             document.getElementById('initial-screen').style.display = 'block';
             document.getElementById('statements-screen').style.display = 'none';
+            document.getElementById('captcha-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('ledger-screen').style.display = 'none';
         }
 
         function tryAgain() {
             resetToHome();
+        }
+
+        // CAPTCHA functions
+        let captchaSelectedImages = [];
+        let captchaCorrectImages = []; // Indices of images that contain humans
+
+        function loadCaptchaImages() {
+            const grid = document.getElementById('captcha-grid');
+            grid.innerHTML = '';
+            captchaSelectedImages = [];
+            
+            // For now, use placeholder images. Later we'll create a script to change these.
+            // Using placeholder.com for now - in production, these will be actual images
+            const imageUrls = [
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+1',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+2',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+3',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+4',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+5',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+6',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+7',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+8',
+                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+9'
+            ];
+            
+            // For now, randomly assign which images contain humans (indices 1, 3, 5 for example)
+            // Later this will be determined by the actual images
+            captchaCorrectImages = [1, 3, 5]; // Example: images at indices 1, 3, and 5 contain humans
+            
+            imageUrls.forEach((url, index) => {
+                const container = document.createElement('div');
+                container.className = 'captcha-image-container';
+                container.dataset.index = index;
+                container.onclick = function() {
+                    toggleCaptchaImage(index);
+                };
+                
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'CAPTCHA image ' + (index + 1);
+                img.loading = 'lazy';
+                
+                container.appendChild(img);
+                grid.appendChild(container);
+            });
+        }
+
+        function toggleCaptchaImage(index) {
+            const container = document.querySelector(`.captcha-image-container[data-index="${index}"]`);
+            const isSelected = captchaSelectedImages.includes(index);
+            
+            if (isSelected) {
+                captchaSelectedImages = captchaSelectedImages.filter(i => i !== index);
+                container.classList.remove('selected');
+            } else {
+                captchaSelectedImages.push(index);
+                container.classList.add('selected');
+            }
+        }
+
+        function verifyCaptcha() {
+            // Check if all correct images are selected and no incorrect ones
+            const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
+            const selectedIncorrect = captchaSelectedImages.some(idx => !captchaCorrectImages.includes(idx));
+            const allCorrectSelected = captchaCorrectImages.length === captchaSelectedImages.length;
+            
+            if (selectedCorrect && !selectedIncorrect && allCorrectSelected) {
+                // All correct images selected, none incorrect
+                document.getElementById('captcha-screen').style.display = 'none';
+                showResult(true);
+            } else {
+                // Wrong selection - show robot screen
+                document.getElementById('captcha-screen').style.display = 'none';
+                showResult(false);
+            }
+        }
+
+        function refreshCaptcha() {
+            loadCaptchaImages();
         }
 
         function shareVerification() {
