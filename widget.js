@@ -13,7 +13,25 @@
             this.injectStyles();
             this.createModal();
             this.attachEventListeners();
+            this.autoCreateButton();
             this.initialized = true;
+        },
+        
+        // Automatically create a button on the page
+        autoCreateButton: function() {
+            // Check if a button already exists
+            if (document.getElementById('behuman-auto-button')) return;
+            
+            const button = document.createElement('button');
+            button.id = 'behuman-auto-button';
+            button.className = 'behuman-btn';
+            button.textContent = 'Verify You Are Human';
+            button.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 999998;';
+            button.addEventListener('click', function() {
+                BeHuman.show();
+            });
+            
+            document.body.appendChild(button);
         },
         
         // Inject CSS styles

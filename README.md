@@ -4,13 +4,17 @@ A simple, standardized verification widget that can be easily added to any websi
 
 ## Quick Start
 
-Add this single line to your HTML:
+**One-Step Installation:** Just add this single line to your HTML:
 
 ```html
 <script src="https://markjcsimmons.github.io/behuman/widget.js"></script>
 ```
 
-Then trigger the verification with:
+That's it! A "Verify You Are Human" button will automatically appear in the bottom-right corner of your page.
+
+### Optional: Custom Trigger
+
+If you want to trigger it manually instead of using the auto-created button:
 
 ```html
 <button onclick="BeHuman.show()">Verify You Are Human</button>
