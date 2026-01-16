@@ -59,6 +59,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
 
         #initial-screen {
@@ -66,6 +67,7 @@
             border-radius: 20px;
             padding: 40px 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
         }
 
         h1 {
@@ -115,6 +117,7 @@
             border-radius: 8px;
             padding: 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
         }
 
         .statement-item {
@@ -159,6 +162,7 @@
             border-radius: 8px;
             padding: 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
         }
 
         .result.verified {
@@ -283,6 +287,7 @@
             border-radius: 8px;
             padding: 30px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
         }
 
         #ledger-screen h3 {
@@ -370,9 +375,9 @@
         }
 
         .reset-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
+            position: absolute;
+            top: -16px;
+            right: -16px;
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -400,10 +405,10 @@
     </style>
 </head>
 <body>
-    <button class="reset-button" onclick="resetToHome()" title="Reset">↻</button>
     <div class="container">
         <!-- Initial Screen -->
         <div id="initial-screen">
+            <button class="reset-button" onclick="resetToHome()" title="Reset">↻</button>
             <h1>Verify You Are Human</h1>
             <p>Please complete a simple test to confirm you are a human.</p>
             <button class="btn" onclick="showStatements()">Click here to begin</button>
@@ -411,6 +416,7 @@
 
         <!-- Statements Screen -->
         <div id="statements-screen" class="statements">
+            <button class="reset-button" onclick="resetToHome()" title="Reset">↻</button>
             <div class="statement-item">
                 <input type="checkbox" id="stmt1">
                 <label for="stmt1">Cruelty is not strength</label>
@@ -446,6 +452,7 @@
 
         <!-- Ledger Screen -->
         <div id="ledger-screen" class="statements">
+            <button class="reset-button" onclick="resetToHome()" title="Reset">↻</button>
             <h3>Join the Human Ledger</h3>
             <form id="ledger-form">
                 <div class="ledger-form-group">
@@ -480,6 +487,7 @@
 
         <!-- Result Screen -->
         <div id="result-screen" class="result">
+            <button class="reset-button" onclick="resetToHome()" title="Reset">↻</button>
             <div class="check-icon" id="result-icon"></div>
             <h2 id="result-text"></h2>
             <div id="share-container" style="display: none; margin-top: 20px; width: 100%;">

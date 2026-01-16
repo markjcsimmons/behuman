@@ -72,6 +72,7 @@
                     border-radius: 20px;
                     padding: 40px 30px;
                     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                    position: relative;
                 }
                 
                 #behuman-modal h1 {
@@ -124,6 +125,7 @@
                     border-radius: 8px;
                     padding: 30px;
                     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                    position: relative;
                 }
                 
                 .behuman-statement-item {
@@ -169,6 +171,7 @@
                     border-radius: 8px;
                     padding: 30px;
                     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                    position: relative;
                 }
                 
                 #behuman-result-screen.verified {
@@ -300,9 +303,9 @@
                 }
                 
                 .behuman-reset-button {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
+                    position: absolute;
+                    top: -16px;
+                    right: -16px;
                     width: 32px;
                     height: 32px;
                     border-radius: 50%;
@@ -338,23 +341,17 @@
             overlay.id = 'behuman-overlay';
             overlay.style.display = 'none';
             
-            // Create reset button outside modal
-            const resetButton = document.createElement('button');
-            resetButton.className = 'behuman-reset-button';
-            resetButton.onclick = () => { this.resetToHome(); };
-            resetButton.title = 'Reset';
-            resetButton.textContent = '↻';
-            document.body.appendChild(resetButton);
-            
             overlay.innerHTML = `
                 <div id="behuman-modal">
                     <div id="behuman-initial-screen">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <h1>Verify You Are Human</h1>
                         <p>Please complete a simple test to confirm you are a human.</p>
                         <button class="behuman-btn" id="behuman-start-btn">Click here to begin</button>
                     </div>
                     
                     <div id="behuman-statements-screen">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <div class="behuman-statement-item">
                             <input type="checkbox" id="behuman-stmt1">
                             <label for="behuman-stmt1">Cruelty is not strength</label>
@@ -389,6 +386,7 @@
                     </div>
                     
                     <div id="behuman-result-screen">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <div class="behuman-check-icon" id="behuman-result-icon"></div>
                         <h2 id="behuman-result-text"></h2>
                         <div id="behuman-share-container" style="display: none; margin-top: 20px; width: 100%;">
@@ -402,7 +400,8 @@
                         </div>
                     </div>
                     
-                    <div id="behuman-ledger-screen" style="display: none; text-align: left; background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);">
+                    <div id="behuman-ledger-screen" style="display: none; text-align: left; background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); position: relative;">
+                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
                         <h3 style="font-size: 24px; font-weight: 500; color: #333; margin-bottom: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">Join the Human Ledger</h3>
                         <form id="behuman-ledger-form">
                             <div style="margin-bottom: 20px;">
