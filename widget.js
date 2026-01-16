@@ -393,45 +393,10 @@
                             <button class="behuman-btn" id="behuman-share-btn" style="width: 100%;">Tell others you are human</button>
                             <p id="behuman-share-message" style="margin-top: 10px; font-size: 12px; color: #666; display: none;">Link copied to clipboard!</p>
                             <button class="behuman-btn" id="behuman-widget-btn" style="margin-top: 15px; background-color: #34a853; width: 100%;">Add widget to your website</button>
-                            <button class="behuman-btn" id="behuman-ledger-btn" style="margin-top: 15px; background-color: #757575; width: 100%;">Join the Human Ledger</button>
                         </div>
                         <div id="behuman-try-again-container" style="display: none; margin-top: 20px;">
                             <button class="behuman-btn" id="behuman-try-again-btn">Try again</button>
                         </div>
-                    </div>
-                    
-                    <div id="behuman-ledger-screen" style="display: none; text-align: left; background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); position: relative;">
-                        <button class="behuman-reset-button" onclick="BeHuman.resetToHome()" title="Reset">↻</button>
-                        <h3 style="font-size: 24px; font-weight: 500; color: #333; margin-bottom: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">Join the Human Ledger</h3>
-                        <form id="behuman-ledger-form">
-                            <div style="margin-bottom: 20px;">
-                                <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">Name (or initials / pseudonym)</label>
-                                <input type="text" id="behuman-ledger-name" name="name" placeholder="Enter your name, initials, or pseudonym" required style="width: 100%; padding: 12px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; box-sizing: border-box;">
-                            </div>
-                            <div style="margin-bottom: 20px;">
-                                <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">City</label>
-                                <input type="text" id="behuman-ledger-city" name="city" placeholder="Enter your city" required style="width: 100%; padding: 12px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; box-sizing: border-box;">
-                            </div>
-                            <div style="margin-bottom: 20px;">
-                                <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">Country</label>
-                                <input type="text" id="behuman-ledger-country" name="country" placeholder="Enter your country" required style="width: 100%; padding: 12px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; box-sizing: border-box;">
-                            </div>
-                            <div style="margin-bottom: 20px;">
-                                <label style="display: block; font-size: 14px; color: #333; margin-bottom: 8px; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">Type</label>
-                                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                                    <label class="behuman-toggle-option behuman-toggle-active" for="behuman-ledger-type-individual" style="flex: 1; padding: 12px; border: 2px solid #4285f4; border-radius: 4px; text-align: center; cursor: pointer; font-size: 14px; background-color: #4285f4; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">
-                                        <input type="radio" id="behuman-ledger-type-individual" name="type" value="individual" checked style="display: none;">
-                                        Individual
-                                    </label>
-                                    <label class="behuman-toggle-option" for="behuman-ledger-type-organization" style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 4px; text-align: center; cursor: pointer; font-size: 14px; background-color: white; color: #666; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">
-                                        <input type="radio" id="behuman-ledger-type-organization" name="type" value="organization" style="display: none;">
-                                        Organization
-                                    </label>
-                                </div>
-                            </div>
-                            <button type="submit" class="behuman-btn" style="width: 100%; margin-top: 20px;">Add my name</button>
-                            <p id="behuman-ledger-message" style="margin-top: 15px; font-size: 14px; text-align: center; display: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;"></p>
-                        </form>
                     </div>
                 </div>
             `;
@@ -502,34 +467,6 @@
                 self.copyWidgetScript();
             });
             
-            // Ledger button
-            document.getElementById('behuman-ledger-btn').addEventListener('click', function() {
-                self.showHumanLedger();
-            });
-            
-            // Ledger toggle options
-            document.querySelectorAll('.behuman-toggle-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.behuman-toggle-option').forEach(opt => {
-                        opt.classList.remove('behuman-toggle-active');
-                        opt.style.borderColor = '#ddd';
-                        opt.style.backgroundColor = 'white';
-                        opt.style.color = '#666';
-                    });
-                    this.classList.add('behuman-toggle-active');
-                    this.style.borderColor = '#4285f4';
-                    this.style.backgroundColor = '#4285f4';
-                    this.style.color = 'white';
-                    this.querySelector('input[type="radio"]').checked = true;
-                });
-            });
-            
-            // Ledger form submission
-            document.getElementById('behuman-ledger-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                self.submitLedgerForm();
-            });
-            
             // Close on overlay click (outside modal)
             this.modal.addEventListener('click', function(e) {
                 if (e.target.id === 'behuman-overlay') {
@@ -563,25 +500,11 @@
             document.getElementById('behuman-initial-screen').style.display = 'block';
             document.getElementById('behuman-statements-screen').style.display = 'none';
             document.getElementById('behuman-result-screen').style.display = 'none';
-            document.getElementById('behuman-ledger-screen').style.display = 'none';
             
             // Reset checkboxes
             for (let i = 1; i <= 7; i++) {
                 const checkbox = document.getElementById('behuman-stmt' + i);
                 if (checkbox) checkbox.checked = false;
-            }
-            
-            // Reset ledger form if it exists
-            const ledgerForm = document.getElementById('behuman-ledger-form');
-            if (ledgerForm) {
-                ledgerForm.reset();
-                const submitBtn = document.querySelector('#behuman-ledger-form button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.textContent = 'Add my name';
-                    submitBtn.disabled = false;
-                    submitBtn.style.backgroundColor = '#4285f4';
-                    submitBtn.style.cursor = 'pointer';
-                }
             }
             
             // Close widget instructions if open
@@ -596,7 +519,6 @@
             document.getElementById('behuman-initial-screen').style.display = 'none';
             document.getElementById('behuman-statements-screen').style.display = 'block';
             document.getElementById('behuman-result-screen').style.display = 'none';
-            document.getElementById('behuman-ledger-screen').style.display = 'none';
         },
         
         // Submit verification
@@ -619,7 +541,6 @@
             const shareContainer = document.getElementById('behuman-share-container');
             
             document.getElementById('behuman-statements-screen').style.display = 'none';
-            document.getElementById('behuman-ledger-screen').style.display = 'none';
             resultScreen.style.display = 'block';
             
             if (isVerified) {
@@ -684,58 +605,6 @@
             } else {
                 this.fallbackCopyToClipboard(text, messageElement);
             }
-        },
-        
-        // Show human ledger
-        showHumanLedger: function() {
-            document.getElementById('behuman-result-screen').style.display = 'none';
-            document.getElementById('behuman-ledger-screen').style.display = 'block';
-            // Reset form
-            document.getElementById('behuman-ledger-form').reset();
-            document.getElementById('behuman-ledger-message').style.display = 'none';
-            // Reset button
-            const submitBtn = document.querySelector('#behuman-ledger-form button[type="submit"]');
-            submitBtn.textContent = 'Add my name';
-            submitBtn.disabled = false;
-            submitBtn.style.backgroundColor = '#4285f4';
-            submitBtn.style.cursor = 'pointer';
-            // Reset toggle to individual
-            document.querySelectorAll('.behuman-toggle-option').forEach(opt => {
-                opt.classList.remove('behuman-toggle-active');
-                opt.style.borderColor = '#ddd';
-                opt.style.backgroundColor = 'white';
-                opt.style.color = '#666';
-            });
-            const individualOption = document.querySelector('#behuman-ledger-type-individual').closest('.behuman-toggle-option');
-            individualOption.classList.add('behuman-toggle-active');
-            individualOption.style.borderColor = '#4285f4';
-            individualOption.style.backgroundColor = '#4285f4';
-            individualOption.style.color = 'white';
-        },
-        
-        // Submit ledger form
-        submitLedgerForm: function() {
-            const name = document.getElementById('behuman-ledger-name').value.trim();
-            const city = document.getElementById('behuman-ledger-city').value.trim();
-            const country = document.getElementById('behuman-ledger-country').value.trim();
-            const type = document.querySelector('input[name="type"]:checked').value;
-            const messageElement = document.getElementById('behuman-ledger-message');
-            const submitBtn = document.querySelector('#behuman-ledger-form button[type="submit"]');
-            
-            if (!name || !city || !country) {
-                messageElement.style.display = 'block';
-                messageElement.style.color = '#ea4335';
-                messageElement.textContent = 'Please fill in all fields.';
-                return;
-            }
-            
-            // Here you would typically send the data to a server
-            // Change button to "Added" and disable it
-            submitBtn.textContent = 'Added';
-            submitBtn.disabled = true;
-            submitBtn.style.backgroundColor = '#34a853';
-            submitBtn.style.cursor = 'default';
-            messageElement.style.display = 'none';
         },
         
         // Fallback copy method
