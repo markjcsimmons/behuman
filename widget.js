@@ -129,7 +129,7 @@
                 .behuman-statement-item {
                     display: flex;
                     align-items: center;
-                    padding: 16px 0;
+                    padding: 10px 0;
                     border-bottom: 1px solid #eee;
                     touch-action: manipulation;
                     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
@@ -353,11 +353,11 @@
                     <div id="behuman-result-screen">
                         <div class="behuman-check-icon" id="behuman-result-icon"></div>
                         <h2 id="behuman-result-text"></h2>
-                        <div id="behuman-share-container" style="display: none; margin-top: 20px;">
-                            <button class="behuman-btn" id="behuman-share-btn">Tell others you are human</button>
+                        <div id="behuman-share-container" style="display: none; margin-top: 20px; width: 100%;">
+                            <button class="behuman-btn" id="behuman-share-btn" style="width: 100%;">Tell others you are human</button>
                             <p id="behuman-share-message" style="margin-top: 10px; font-size: 12px; color: #666; display: none;">Link copied to clipboard!</p>
-                            <button class="behuman-btn" id="behuman-widget-btn" style="margin-top: 15px; background-color: #34a853;">Add widget to your website</button>
-                            <button class="behuman-btn" id="behuman-ledger-btn" style="margin-top: 15px; background-color: #9c27b0;">Join the Human Ledger</button>
+                            <button class="behuman-btn" id="behuman-widget-btn" style="margin-top: 15px; background-color: #34a853; width: 100%;">Add widget to your website</button>
+                            <button class="behuman-btn" id="behuman-ledger-btn" style="margin-top: 15px; background-color: #757575; width: 100%;">Join the Human Ledger</button>
                         </div>
                         <div id="behuman-try-again-container" style="display: none; margin-top: 20px;">
                             <button class="behuman-btn" id="behuman-try-again-btn">Try again</button>
@@ -633,6 +633,12 @@
             // Reset form
             document.getElementById('behuman-ledger-form').reset();
             document.getElementById('behuman-ledger-message').style.display = 'none';
+            // Reset button
+            const submitBtn = document.querySelector('#behuman-ledger-form button[type="submit"]');
+            submitBtn.textContent = 'Add my name';
+            submitBtn.disabled = false;
+            submitBtn.style.backgroundColor = '#4285f4';
+            submitBtn.style.cursor = 'pointer';
             // Reset toggle to individual
             document.querySelectorAll('.behuman-toggle-option').forEach(opt => {
                 opt.classList.remove('behuman-toggle-active');
@@ -654,6 +660,7 @@
             const country = document.getElementById('behuman-ledger-country').value.trim();
             const type = document.querySelector('input[name="type"]:checked').value;
             const messageElement = document.getElementById('behuman-ledger-message');
+            const submitBtn = document.querySelector('#behuman-ledger-form button[type="submit"]');
             
             if (!name || !city || !country) {
                 messageElement.style.display = 'block';
@@ -663,27 +670,12 @@
             }
             
             // Here you would typically send the data to a server
-            // For now, we'll just show a success message
-            messageElement.style.display = 'block';
-            messageElement.style.color = '#34a853';
-            messageElement.textContent = 'Thank you! Your name has been added to the Human Ledger.';
-            
-            // Reset form after 3 seconds
-            setTimeout(() => {
-                document.getElementById('behuman-ledger-form').reset();
-                document.querySelectorAll('.behuman-toggle-option').forEach(opt => {
-                    opt.classList.remove('behuman-toggle-active');
-                    opt.style.borderColor = '#ddd';
-                    opt.style.backgroundColor = 'white';
-                    opt.style.color = '#666';
-                });
-                const individualOption = document.querySelector('#behuman-ledger-type-individual').closest('.behuman-toggle-option');
-                individualOption.classList.add('behuman-toggle-active');
-                individualOption.style.borderColor = '#4285f4';
-                individualOption.style.backgroundColor = '#4285f4';
-                individualOption.style.color = 'white';
-                messageElement.style.display = 'none';
-            }, 3000);
+            // Change button to "Added" and disable it
+            submitBtn.textContent = 'Added';
+            submitBtn.disabled = true;
+            submitBtn.style.backgroundColor = '#34a853';
+            submitBtn.style.cursor = 'default';
+            messageElement.style.display = 'none';
         },
         
         // Fallback copy method
