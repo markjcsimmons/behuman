@@ -216,6 +216,78 @@
                         font-size: 48px;
                     }
                 }
+                
+                #behuman-instructions-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000000;
+                    padding: 20px;
+                }
+                
+                #behuman-instructions-modal {
+                    background-color: white;
+                    border-radius: 8px;
+                    padding: 30px;
+                    max-width: 600px;
+                    width: 100%;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                    position: relative;
+                }
+                
+                #behuman-instructions-modal h3 {
+                    font-size: 24px;
+                    font-weight: 500;
+                    color: #333;
+                    margin-bottom: 20px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                }
+                
+                #behuman-instructions-modal p {
+                    font-size: 14px;
+                    color: #666;
+                    margin-bottom: 15px;
+                    line-height: 1.6;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                }
+                
+                #behuman-instructions-code {
+                    background-color: #f5f5f5;
+                    padding: 15px;
+                    border-radius: 4px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 14px;
+                    color: #333;
+                    margin: 15px 0;
+                    word-break: break-all;
+                    border: 1px solid #ddd;
+                }
+                
+                #behuman-instructions-close {
+                    position: absolute;
+                    top: 15px;
+                    right: 15px;
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    color: #999;
+                    cursor: pointer;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                #behuman-instructions-close:hover {
+                    color: #333;
+                }
             `;
             document.head.appendChild(style);
         },
@@ -274,6 +346,7 @@
                         <div id="behuman-share-container" style="display: none; margin-top: 20px;">
                             <button class="behuman-btn" id="behuman-share-btn">Tell others you are human</button>
                             <p id="behuman-share-message" style="margin-top: 10px; font-size: 12px; color: #666; display: none;">Link copied to clipboard!</p>
+                            <button class="behuman-btn" id="behuman-widget-btn" style="margin-top: 15px; background-color: #34a853;">Add widget to your website</button>
                         </div>
                         <div id="behuman-try-again-container" style="display: none; margin-top: 20px;">
                             <button class="behuman-btn" id="behuman-try-again-btn">Try again</button>
@@ -284,6 +357,22 @@
             
             document.body.appendChild(overlay);
             this.modal = overlay;
+            
+            // Create instructions modal
+            const instructionsOverlay = document.createElement('div');
+            instructionsOverlay.id = 'behuman-instructions-overlay';
+            instructionsOverlay.innerHTML = `
+                <div id="behuman-instructions-modal" onclick="event.stopPropagation()">
+                    <button id="behuman-instructions-close">×</button>
+                    <h3>Add Widget to Your Website</h3>
+                    <p>Add this single line to your HTML:</p>
+                    <div id="behuman-instructions-code">&lt;script src="https://markjcsimmons.github.io/behuman/widget.js"&gt;&lt;\/script&gt;</div>
+                    <p>That's it! A "Verify You Are Human" button will automatically appear in the bottom-right corner of your page.</p>
+                    <button class="behuman-btn" id="behuman-copy-script-btn" style="margin-top: 10px;">Copy Script</button>
+                    <p id="behuman-copy-message" style="margin-top: 10px; font-size: 12px; color: #34a853; display: none;">Script copied to clipboard!</p>
+                </div>
+            `;
+            document.body.appendChild(instructionsOverlay);
         },
         
         // Attach event listeners
@@ -308,6 +397,28 @@
             // Share button
             document.getElementById('behuman-share-btn').addEventListener('click', function() {
                 self.shareVerification();
+            });
+            
+            // Widget instructions button
+            document.getElementById('behuman-widget-btn').addEventListener('click', function() {
+                self.showWidgetInstructions();
+            });
+            
+            // Instructions close button
+            document.getElementById('behuman-instructions-close').addEventListener('click', function() {
+                self.closeWidgetInstructions();
+            });
+            
+            // Instructions overlay click to close
+            document.getElementById('behuman-instructions-overlay').addEventListener('click', function(e) {
+                if (e.target.id === 'behuman-instructions-overlay') {
+                    self.closeWidgetInstructions();
+                }
+            });
+            
+            // Copy script button
+            document.getElementById('behuman-copy-script-btn').addEventListener('click', function() {
+                self.copyWidgetScript();
             });
             
             // Close on overlay click (outside modal)
@@ -473,6 +584,36 @@
         showShareUrl: function(text, messageElement) {
             messageElement.style.display = 'block';
             messageElement.innerHTML = 'Copy this link: <br><strong style="word-break: break-all;">' + text + '</strong>';
+        },
+        
+        // Show widget instructions
+        showWidgetInstructions: function() {
+            document.getElementById('behuman-instructions-overlay').style.display = 'flex';
+        },
+        
+        // Close widget instructions
+        closeWidgetInstructions: function() {
+            document.getElementById('behuman-instructions-overlay').style.display = 'none';
+        },
+        
+        // Copy widget script
+        copyWidgetScript: function() {
+            const scriptText = '<script src="https://markjcsimmons.github.io/behuman/widget.js"><\/script>';
+            const messageElement = document.getElementById('behuman-copy-message');
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(scriptText).then(() => {
+                    messageElement.style.display = 'block';
+                    messageElement.textContent = 'Script copied to clipboard!';
+                    setTimeout(() => {
+                        messageElement.style.display = 'none';
+                    }, 3000);
+                }).catch(() => {
+                    this.fallbackCopyToClipboard(scriptText, messageElement);
+                });
+            } else {
+                this.fallbackCopyToClipboard(scriptText, messageElement);
+            }
         }
     };
     
