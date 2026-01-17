@@ -34,6 +34,28 @@
             document.body.appendChild(button);
         },
         
+        // Load TensorFlow.js libraries
+        loadDetectionLibraries: function() {
+            if (document.getElementById('behuman-tfjs')) return Promise.resolve();
+            
+            return new Promise((resolve, reject) => {
+                // Load TensorFlow.js
+                const tfjsScript = document.createElement('script');
+                tfjsScript.id = 'behuman-tfjs';
+                tfjsScript.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js';
+                tfjsScript.onload = () => {
+                    // Load COCO-SSD model
+                    const cocoScript = document.createElement('script');
+                    cocoScript.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js';
+                    cocoScript.onload = resolve;
+                    cocoScript.onerror = reject;
+                    document.head.appendChild(cocoScript);
+                };
+                tfjsScript.onerror = reject;
+                document.head.appendChild(tfjsScript);
+            });
+        },
+        
         // Inject CSS styles
         injectStyles: function() {
             if (document.getElementById('behuman-styles')) return;
@@ -836,9 +858,53 @@
         captchaSelectedImages: [],
         captchaCorrectImages: [], // Indices of images that contain humans
         preloadedCaptchaData: null, // Store preloaded image data
+        detectionModel: null, // TensorFlow.js COCO-SSD model
         
         // Pexels API Configuration
         pexelsApiKey: 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh',
+        
+        // Load TensorFlow.js detection model
+        loadDetectionModel: async function() {
+            if (!this.detectionModel && typeof cocoSsd !== 'undefined') {
+                try {
+                    this.detectionModel = await cocoSsd.load();
+                } catch (error) {
+                    console.error('Error loading detection model:', error);
+                }
+            }
+            return this.detectionModel;
+        },
+        
+        // Detect people in an image
+        detectPeopleInImage: async function(imageUrl) {
+            try {
+                const model = await this.loadDetectionModel();
+                if (!model) return false;
+                
+                // Create an image element to load the image
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                return new Promise((resolve) => {
+                    img.onload = async () => {
+                        try {
+                            const predictions = await model.detect(img);
+                            // Check if any detection is a "person" class
+                            const hasPerson = predictions.some(pred => pred.class === 'person');
+                            resolve(hasPerson);
+                        } catch (error) {
+                            console.error('Error detecting people:', error);
+                            resolve(false);
+                        }
+                    };
+                    img.onerror = () => resolve(false);
+                    img.src = imageUrl;
+                });
+            } catch (error) {
+                console.error('Error in detectPeopleInImage:', error);
+                return false;
+            }
+        },
         
         // Preload CAPTCHA images (fetch data and cache images)
         preloadCaptchaImages: async function() {
@@ -865,27 +931,74 @@
                 });
                 const nonPeopleData = await nonPeopleResponse.json();
                 
-                // Get image URLs
-                const peopleImages = peopleData.photos ? peopleData.photos.map(p => p.src.medium) : [];
-                const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.medium) : [];
+                // Get image URLs - fetch more images so we can select ones that actually contain people
+                const allImageUrls = [];
+                const peoplePhotos = peopleData.photos ? peopleData.photos : [];
+                const nonPeoplePhotos = nonPeopleData.photos ? nonPeopleData.photos : [];
                 
-                // Randomly select images: 3-5 with people, rest without
-                const numPeopleImages = 3 + Math.floor(Math.random() * 3); // 3-5 people images
+                // Collect up to 40 images (mix of both types)
+                const mixedPhotos = [...peoplePhotos.slice(0, 20), ...nonPeoplePhotos.slice(0, 20)]
+                    .sort(() => 0.5 - Math.random()).slice(0, 40);
+                
+                allImageUrls.push(...mixedPhotos.map(p => p.src.medium));
+                
+                // Load detection libraries if not already loaded
+                await this.loadDetectionLibraries();
+                
+                // Preload images into browser cache first
+                const imagePromises = allImageUrls.map(url => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => resolve({ url, img });
+                        img.onerror = () => resolve({ url, img: null });
+                        img.src = url;
+                    });
+                });
+                
+                await Promise.all(imagePromises);
+                
+                // Load detection model
+                await this.loadDetectionModel();
+                
+                // Detect people in all images
+                const detectionResults = await Promise.all(
+                    allImageUrls.map(url => this.detectPeopleInImage(url))
+                );
+                
+                // Separate images with and without people
+                const imagesWithPeople = [];
+                const imagesWithoutPeople = [];
+                
+                detectionResults.forEach((hasPerson, index) => {
+                    if (hasPerson) {
+                        imagesWithPeople.push(allImageUrls[index]);
+                    } else {
+                        imagesWithoutPeople.push(allImageUrls[index]);
+                    }
+                });
+                
+                // Select 3-5 images with people, rest without
+                const numPeopleImages = Math.min(3 + Math.floor(Math.random() * 3), imagesWithPeople.length); // 3-5 people images
                 const numNonPeopleImages = 9 - numPeopleImages;
                 
                 // Shuffle and select
-                const shuffledPeople = peopleImages.sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
-                const shuffledNonPeople = nonPeopleImages.sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                const selectedPeopleImages = imagesWithPeople.sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
+                const selectedNonPeopleImages = imagesWithoutPeople.sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                
+                // If we don't have enough images with people, use what we have and fill with non-people
+                const finalPeopleImages = selectedPeopleImages.length >= numPeopleImages 
+                    ? selectedPeopleImages.slice(0, numPeopleImages)
+                    : selectedPeopleImages;
+                const finalNonPeopleImages = selectedNonPeopleImages.slice(0, 9 - finalPeopleImages.length);
                 
                 // Combine and shuffle all images
-                const allImages = [...shuffledPeople, ...shuffledNonPeople].sort(() => 0.5 - Math.random());
-                const allImageTypes = [...Array(numPeopleImages).fill(true), ...Array(numNonPeopleImages).fill(false)];
-                const shuffledTypes = allImageTypes.sort(() => 0.5 - Math.random());
+                const allImages = [...finalPeopleImages, ...finalNonPeopleImages].sort(() => 0.5 - Math.random());
                 
-                // Track which indices have people
+                // Track which indices have people (based on actual detection)
                 const correctImages = [];
-                shuffledTypes.forEach((hasPerson, index) => {
-                    if (hasPerson) {
+                allImages.forEach((url, index) => {
+                    if (finalPeopleImages.includes(url)) {
                         correctImages.push(index);
                     }
                 });
@@ -894,22 +1007,8 @@
                 this.preloadedCaptchaData = {
                     images: allImages,
                     correctImages: correctImages,
-                    loaded: false
+                    loaded: true
                 };
-                
-                // Preload images into browser cache and wait for all to load
-                const imagePromises = allImages.map(url => {
-                    return new Promise((resolve, reject) => {
-                        const img = new Image();
-                        img.onload = () => resolve(url);
-                        img.onerror = () => resolve(url); // Resolve anyway, will show placeholder if fails
-                        img.src = url;
-                    });
-                });
-                
-                // Wait for all images to load
-                await Promise.all(imagePromises);
-                this.preloadedCaptchaData.loaded = true;
             } catch (error) {
                 console.error('Error preloading CAPTCHA images:', error);
                 this.preloadedCaptchaData = null;
