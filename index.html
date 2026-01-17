@@ -592,7 +592,7 @@
             }
         }
 
-        function showResult(isVerified) {
+        function showResult(isVerified, isCaptchaFailureFlag = false) {
             const resultScreen = document.getElementById('result-screen');
             const resultIcon = document.getElementById('result-icon');
             const resultText = document.getElementById('result-text');
@@ -600,18 +600,25 @@
             const shareContainer = document.getElementById('share-container');
 
             document.getElementById('statements-screen').style.display = 'none';
+            document.getElementById('captcha-screen').style.display = 'none';
             resultScreen.style.display = 'block';
 
             if (isVerified) {
+                isCaptchaFailure = false;
                 resultScreen.className = 'result verified';
                 resultIcon.textContent = '✓';
                 resultText.textContent = 'Verified Human';
                 tryAgainContainer.style.display = 'none';
                 shareContainer.style.display = 'block';
             } else {
+                isCaptchaFailure = isCaptchaFailureFlag;
                 resultScreen.className = 'result robot';
                 resultIcon.textContent = '✗';
-                resultText.textContent = 'Sorry, you must be a robot.';
+                if (isCaptchaFailureFlag) {
+                    resultText.textContent = 'Oops. Looks like you\'re a bot.';
+                } else {
+                    resultText.textContent = 'Sorry, you must be a robot.';
+                }
                 tryAgainContainer.style.display = 'block';
                 shareContainer.style.display = 'none';
             }
@@ -656,7 +663,13 @@
         }
 
         function tryAgain() {
-            resetToHome();
+            if (isCaptchaFailure) {
+                // If CAPTCHA failure, refresh CAPTCHA instead of going home
+                refreshCaptcha();
+            } else {
+                // Otherwise, reset to home
+                resetToHome();
+            }
         }
 
         // CAPTCHA functions
@@ -665,6 +678,7 @@
         let captchaNonHumanImages = []; // Indices of explicitly non-human images
         let preloadedCaptchaData = null; // Store preloaded image data
         let detectionModel = null; // TensorFlow.js COCO-SSD model
+        let isCaptchaFailure = false; // Track if failure is from CAPTCHA
         
         // Pexels API Configuration
         const PEXELS_API_KEY = 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh';
@@ -1008,13 +1022,12 @@
             const selectedNonHuman = captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
             
             if (selectedNonHuman) {
-                // Non-human image selected - fail and refresh CAPTCHA
+                // Non-human image selected - fail and start loading new CAPTCHA images immediately
                 document.getElementById('captcha-screen').style.display = 'none';
-                showResult(false);
-                // Refresh CAPTCHA after showing result
-                setTimeout(() => {
-                    refreshCaptcha();
-                }, 2000);
+                showResult(false, true); // Mark as CAPTCHA failure
+                // Start preloading new images immediately
+                preloadedCaptchaData = null;
+                preloadCaptchaImages();
                 return;
             }
             
@@ -1031,11 +1044,10 @@
             } else if (!autoVerify) {
                 // Manual verify button clicked but not all correct images selected
                 document.getElementById('captcha-screen').style.display = 'none';
-                showResult(false);
-                // Refresh CAPTCHA after showing result
-                setTimeout(() => {
-                    refreshCaptcha();
-                }, 2000);
+                showResult(false, true); // Mark as CAPTCHA failure
+                // Start preloading new images immediately
+                preloadedCaptchaData = null;
+                preloadCaptchaImages();
             }
         }
 
