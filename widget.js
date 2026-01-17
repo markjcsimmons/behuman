@@ -857,6 +857,7 @@
         // CAPTCHA functions
         captchaSelectedImages: [],
         captchaCorrectImages: [], // Indices of images that contain humans
+        captchaNonHumanImages: [], // Indices of explicitly non-human images from local folder
         preloadedCaptchaData: null, // Store preloaded image data
         detectionModel: null, // TensorFlow.js COCO-SSD model
         
