@@ -528,7 +528,7 @@
                                 <div class="behuman-captcha-icon" title="Audio">🔊</div>
                                 <div class="behuman-captcha-icon" title="Info">ℹ</div>
                             </div>
-                            <button class="behuman-btn" onclick="BeHuman.verifyCaptcha()" style="background-color: #4285f4; min-height: 36px; padding: 10px 24px; font-size: 14px;">VERIFY</button>
+                            <button class="behuman-btn" id="behuman-captcha-submit-btn" onclick="BeHuman.submitCaptcha()" style="background-color: #4285f4; min-height: 36px; padding: 10px 24px; font-size: 14px;">SUBMIT</button>
                         </div>
                     </div>
                     
@@ -985,9 +985,8 @@
                     }
                 });
                 
-                // Select 1-2 images with people (max 25% of 9 images), rest without
-                const maxPeopleImages = 2; // 25% of 9 = 2.25, so max 2 images
-                const numPeopleImages = Math.min(1 + Math.floor(Math.random() * 2), Math.min(maxPeopleImages, imagesWithPeople.length)); // 1-2 people images
+                // Select at least 3 images with people (3-4), rest without
+                const numPeopleImages = Math.max(3, Math.min(3 + Math.floor(Math.random() * 2), imagesWithPeople.length)); // At least 3, up to 4 people images
                 const numNonPeopleImages = 9 - numPeopleImages;
                 
                 // Shuffle and select
@@ -1097,8 +1096,8 @@
                 const peopleImages = peopleData.photos ? peopleData.photos.map(p => p.src.medium) : [];
                 const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.medium) : [];
                 
-                // Randomly select images: 3-5 with people, rest without
-                const numPeopleImages = 3 + Math.floor(Math.random() * 3); // 3-5 people images
+                // Select at least 3 images with people (3-4), rest without
+                const numPeopleImages = Math.max(3, 3 + Math.floor(Math.random() * 2)); // At least 3, up to 4 people images
                 const numNonPeopleImages = 9 - numPeopleImages;
                 
                 // Shuffle and select
@@ -1161,39 +1160,68 @@
                 container.classList.add('selected');
             }
             
-            // Auto-verify if all images with people are selected
-            this.checkAutoVerify();
+            // No longer auto-verifying - user must click Submit button
         },
         
-        checkAutoVerify: function() {
-            // Check if all correct images (with people) are selected
-            const selectedCorrect = this.captchaCorrectImages.every(idx => this.captchaSelectedImages.includes(idx));
+        submitCaptcha: function() {
+            // Show verifying state when Submit is clicked
+            const grid = document.getElementById('behuman-captcha-grid');
+            const controls = document.querySelector('.behuman-captcha-controls');
+            const verifying = document.getElementById('behuman-captcha-verifying');
             
-            if (selectedCorrect && this.captchaCorrectImages.length > 0) {
-                // All images with people are selected - verify automatically
-                const self = this;
-                setTimeout(() => {
-                    self.verifyCaptcha(true);
-                }, 300); // Small delay for visual feedback
-            }
+            // Hide grid and controls, show verifying spinner
+            if (grid) grid.style.display = 'none';
+            if (controls) controls.style.display = 'none';
+            if (verifying) verifying.classList.add('active');
+            
+            // Verify after a short delay - ONLY when Submit button is clicked
+            const self = this;
+            setTimeout(() => {
+                self.verifyCaptcha();
+            }, 300);
         },
         
-        verifyCaptcha: function(autoVerify = false) {
+        verifyCaptcha: function() {
+            // Check if any non-human images are selected - if so, fail immediately
+            const selectedNonHuman = this.captchaNonHumanImages.some(idx => this.captchaSelectedImages.includes(idx));
+            
+            if (selectedNonHuman) {
+                // Non-human image selected - fail and start loading new CAPTCHA images immediately
+                const verifying = document.getElementById('behuman-captcha-verifying');
+                if (verifying) verifying.classList.remove('active');
+                document.getElementById('behuman-captcha-screen').style.display = 'none';
+                this.showResult(false, true); // Mark as CAPTCHA failure
+                // Start preloading new images immediately
+                this.preloadedCaptchaData = null;
+                this.preloadCaptchaImages();
+                return;
+            }
+            
             // Check if all correct images (with people) are selected
             const selectedCorrect = this.captchaCorrectImages.every(idx => this.captchaSelectedImages.includes(idx));
             
             if (selectedCorrect && this.captchaCorrectImages.length > 0) {
                 // All images with people are selected - verified
-                // Add delay before showing Verified Human screen
+                // Verifying state should already be showing from submitCaptcha()
+                const verifying = document.getElementById('behuman-captcha-verifying');
+                
+                // Add longer delay before showing Verified Human screen (2-3 seconds)
+                const delay = 2000 + Math.random() * 1000; // 2-3 seconds
                 const self = this;
                 setTimeout(() => {
+                    if (verifying) verifying.classList.remove('active');
                     document.getElementById('behuman-captcha-screen').style.display = 'none';
                     self.showResult(true);
-                }, 1000); // 1 second delay
-            } else if (!autoVerify) {
-                // Manual verify button clicked but not all correct images selected
+                }, delay);
+            } else {
+                // Submit button clicked but not all correct images selected
+                const verifying = document.getElementById('behuman-captcha-verifying');
+                if (verifying) verifying.classList.remove('active');
                 document.getElementById('behuman-captcha-screen').style.display = 'none';
-                this.showResult(false);
+                this.showResult(false, true); // Mark as CAPTCHA failure
+                // Start preloading new images immediately
+                this.preloadedCaptchaData = null;
+                this.preloadCaptchaImages();
             }
         },
         
