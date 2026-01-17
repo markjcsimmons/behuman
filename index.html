@@ -311,6 +311,39 @@
             background-color: #357ae8;
         }
 
+        .captcha-verifying {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .captcha-verifying.active {
+            display: block;
+        }
+
+        .captcha-verifying-text {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #4285f4;
+            font-weight: 500;
+        }
+
+        .captcha-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4285f4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 480px) {
             #initial-screen {
                 padding: 30px 20px;
@@ -1035,12 +1068,23 @@
             const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
             
             if (selectedCorrect && captchaCorrectImages.length > 0) {
-                // All images with people are selected - verified
-                // Add delay before showing Verified Human screen
+                // All images with people are selected - show verifying state
+                const grid = document.getElementById('captcha-grid');
+                const controls = document.querySelector('.captcha-controls');
+                const verifying = document.getElementById('captcha-verifying');
+                
+                // Hide grid and controls, show verifying spinner
+                if (grid) grid.style.display = 'none';
+                if (controls) controls.style.display = 'none';
+                if (verifying) verifying.classList.add('active');
+                
+                // Add longer delay before showing Verified Human screen (2-3 seconds)
+                const delay = 2000 + Math.random() * 1000; // 2-3 seconds
                 setTimeout(() => {
+                    if (verifying) verifying.classList.remove('active');
                     document.getElementById('captcha-screen').style.display = 'none';
                     showResult(true);
-                }, 1000); // 1 second delay
+                }, delay);
             } else if (!autoVerify) {
                 // Manual verify button clicked but not all correct images selected
                 document.getElementById('captcha-screen').style.display = 'none';
