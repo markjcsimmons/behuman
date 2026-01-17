@@ -1053,20 +1053,34 @@
                 this.captchaSelectedImages.push(index);
                 container.classList.add('selected');
             }
+            
+            // Auto-verify if all images with people are selected
+            this.checkAutoVerify();
         },
         
-        verifyCaptcha: function() {
-            // Check if all correct images are selected and no incorrect ones
+        checkAutoVerify: function() {
+            // Check if all correct images (with people) are selected
             const selectedCorrect = this.captchaCorrectImages.every(idx => this.captchaSelectedImages.includes(idx));
-            const selectedIncorrect = this.captchaSelectedImages.some(idx => !this.captchaCorrectImages.includes(idx));
-            const allCorrectSelected = this.captchaCorrectImages.length === this.captchaSelectedImages.length;
             
-            if (selectedCorrect && !selectedIncorrect && allCorrectSelected) {
-                // All correct images selected, none incorrect
+            if (selectedCorrect && this.captchaCorrectImages.length > 0) {
+                // All images with people are selected - verify automatically
+                const self = this;
+                setTimeout(() => {
+                    self.verifyCaptcha(true);
+                }, 300); // Small delay for visual feedback
+            }
+        },
+        
+        verifyCaptcha: function(autoVerify = false) {
+            // Check if all correct images (with people) are selected
+            const selectedCorrect = this.captchaCorrectImages.every(idx => this.captchaSelectedImages.includes(idx));
+            
+            if (selectedCorrect && this.captchaCorrectImages.length > 0) {
+                // All images with people are selected - verified
                 document.getElementById('behuman-captcha-screen').style.display = 'none';
                 this.showResult(true);
-            } else {
-                // Wrong selection - show robot screen
+            } else if (!autoVerify) {
+                // Manual verify button clicked but not all correct images selected
                 document.getElementById('behuman-captcha-screen').style.display = 'none';
                 this.showResult(false);
             }

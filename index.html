@@ -872,20 +872,33 @@
                 captchaSelectedImages.push(index);
                 container.classList.add('selected');
             }
+            
+            // Auto-verify if all images with people are selected
+            checkAutoVerify();
+        }
+        
+        function checkAutoVerify() {
+            // Check if all correct images (with people) are selected
+            const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
+            
+            if (selectedCorrect && captchaCorrectImages.length > 0) {
+                // All images with people are selected - verify automatically
+                setTimeout(() => {
+                    verifyCaptcha(true);
+                }, 300); // Small delay for visual feedback
+            }
         }
 
-        function verifyCaptcha() {
-            // Check if all correct images are selected and no incorrect ones
+        function verifyCaptcha(autoVerify = false) {
+            // Check if all correct images (with people) are selected
             const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
-            const selectedIncorrect = captchaSelectedImages.some(idx => !captchaCorrectImages.includes(idx));
-            const allCorrectSelected = captchaCorrectImages.length === captchaSelectedImages.length;
             
-            if (selectedCorrect && !selectedIncorrect && allCorrectSelected) {
-                // All correct images selected, none incorrect
+            if (selectedCorrect && captchaCorrectImages.length > 0) {
+                // All images with people are selected - verified
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(true);
-            } else {
-                // Wrong selection - show robot screen
+            } else if (!autoVerify) {
+                // Manual verify button clicked but not all correct images selected
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(false);
             }
