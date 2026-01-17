@@ -704,13 +704,8 @@
         }
 
         function tryAgain() {
-            if (isCaptchaFailure) {
-                // If CAPTCHA failure, refresh CAPTCHA instead of going home
-                refreshCaptcha();
-            } else {
-                // Otherwise, reset to home
-                resetToHome();
-            }
+            // Always go back to home page
+            resetToHome();
         }
 
         // CAPTCHA functions
