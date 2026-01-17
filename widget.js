@@ -724,7 +724,7 @@
         },
         
         // Show result
-        showResult: function(isVerified) {
+        showResult: function(isVerified, isCaptchaFailureFlag = false) {
             const resultScreen = document.getElementById('behuman-result-screen');
             const resultIcon = document.getElementById('behuman-result-icon');
             const resultText = document.getElementById('behuman-result-text');
@@ -732,6 +732,7 @@
             const shareContainer = document.getElementById('behuman-share-container');
             
             document.getElementById('behuman-statements-screen').style.display = 'none';
+            document.getElementById('behuman-captcha-screen').style.display = 'none';
             resultScreen.style.display = 'block';
             
             if (isVerified) {
@@ -743,7 +744,11 @@
             } else {
                 resultScreen.className = 'robot';
                 resultIcon.textContent = '✗';
-                resultText.textContent = 'Sorry, you must be a robot.';
+                if (isCaptchaFailureFlag) {
+                    resultText.textContent = 'Oops. Looks like you\'re a bot.';
+                } else {
+                    resultText.textContent = 'Sorry, you must be a robot.';
+                }
                 tryAgainContainer.style.display = 'block';
                 shareContainer.style.display = 'none';
             }
