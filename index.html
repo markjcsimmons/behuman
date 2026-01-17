@@ -793,8 +793,9 @@
                     }
                 });
                 
-                // Select 3-5 images with people, rest without
-                const numPeopleImages = Math.min(3 + Math.floor(Math.random() * 3), imagesWithPeople.length); // 3-5 people images
+                // Select 1-2 images with people (max 25% of 9 images), rest without
+                const maxPeopleImages = 2; // 25% of 9 = 2.25, so max 2 images
+                const numPeopleImages = Math.min(1 + Math.floor(Math.random() * 2), Math.min(maxPeopleImages, imagesWithPeople.length)); // 1-2 people images
                 const numNonPeopleImages = 9 - numPeopleImages;
                 
                 // Shuffle and select
