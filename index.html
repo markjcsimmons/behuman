@@ -979,7 +979,7 @@
                 const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.medium) : [];
                 
                 // Randomly select images: 3-5 with people, rest without
-                const numPeopleImages = 3 + Math.floor(Math.random() * 3); // 3-5 people images
+                const numPeopleImages = 3 + Math.floor(Math.random() * 2); // 3-4 people images
                 const numNonPeopleImages = 9 - numPeopleImages;
                 
                 // Shuffle and select
