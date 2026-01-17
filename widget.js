@@ -864,6 +864,21 @@
         // Pexels API Configuration
         pexelsApiKey: 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh',
         
+        // Non-human images from local folder
+        nonHumanImages: [
+            'nonhumans/2025-10-17T182150Z_1743657662_RC23TGANHF4A_RTRMADP_3_BRITAIN-ROYALS-ANDREW-1024x707.jpg',
+            'nonhumans/2025-11-12T133552Z_423281103_RC2FKHA3DYS8_RTRMADP_3_USA-MIGRATION-SURVEILLANCE-1024x683.jpg',
+            'nonhumans/251006-bezos-1260x928.jpg',
+            'nonhumans/8d0e7a2d869642d79c1badf576bbaf55_18.webp',
+            'nonhumans/cd148806-da24-4d0d-8b0a-e0bba6cfe0b0_5ee50f3e.webp',
+            'nonhumans/GettyImages-522605040.webp',
+            'nonhumans/jeffrey-epstein-same-name.webp',
+            'nonhumans/stephen-miller-gunning-for-kristi-noem-as-her-star-fades-at-the-white-house-report.webp',
+            'nonhumans/t-dennis-kozlowski-tyco-1.webp',
+            'nonhumans/trump-17650.jpg',
+            'nonhumans/virus_outbreak_belarus_20328_c0-247-3426-2244_s885x516.webp'
+        ],
+        
         // Load TensorFlow.js detection model
         loadDetectionModel: async function() {
             if (!this.detectionModel && typeof cocoSsd !== 'undefined') {
@@ -998,16 +1013,24 @@
                 const finalPeopleImages = selectedPeopleImages.length >= numPeopleImages 
                     ? selectedPeopleImages.slice(0, numPeopleImages)
                     : selectedPeopleImages;
-                const finalNonPeopleImages = selectedNonPeopleImages.slice(0, 9 - finalPeopleImages.length);
+                // We need 8 images total from Pexels (9 - 1 nonhuman image)
+                const numNonPeopleImages = 8 - finalPeopleImages.length;
+                const finalNonPeopleImages = selectedNonPeopleImages.slice(0, numNonPeopleImages);
                 
-                // Combine and shuffle all images
-                const allImages = [...finalPeopleImages, ...finalNonPeopleImages].sort(() => 0.5 - Math.random());
+                // Add one random non-human image
+                const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
                 
-                // Track which indices have people (based on actual detection)
+                // Combine and shuffle all images (8 from Pexels + 1 nonhuman)
+                const allImages = [...finalPeopleImages, ...finalNonPeopleImages, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                
+                // Track which indices have people (based on actual detection) and non-human images
                 const correctImages = [];
+                const nonHumanIndices = [];
                 allImages.forEach((url, index) => {
                     if (finalPeopleImages.includes(url)) {
                         correctImages.push(index);
+                    } else if (url === randomNonHumanImage) {
+                        nonHumanIndices.push(index);
                     }
                 });
                 
@@ -1015,8 +1038,11 @@
                 this.preloadedCaptchaData = {
                     images: allImages,
                     correctImages: correctImages,
+                    nonHumanIndices: nonHumanIndices,
                     loaded: true
                 };
+                this.captchaCorrectImages = correctImages;
+                this.captchaNonHumanImages = nonHumanIndices;
             } catch (error) {
                 console.error('Error preloading CAPTCHA images:', error);
                 this.preloadedCaptchaData = null;
@@ -1032,6 +1058,7 @@
             // If we have preloaded data and it's loaded, use it
             if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded) {
                 this.captchaCorrectImages = this.preloadedCaptchaData.correctImages;
+                this.captchaNonHumanImages = this.preloadedCaptchaData.nonHumanIndices || [];
                 const allImages = this.preloadedCaptchaData.images;
                 
                 // Create image containers
@@ -1099,22 +1126,27 @@
                 
                 // Select at least 3 images with people (3-4), rest without
                 const numPeopleImages = Math.max(3, 3 + Math.floor(Math.random() * 2)); // At least 3, up to 4 people images
-                const numNonPeopleImages = 9 - numPeopleImages;
+                // We need 8 images total from Pexels (9 - 1 nonhuman image)
+                const numNonPeopleImages = 8 - numPeopleImages;
                 
                 // Shuffle and select
                 const shuffledPeople = peopleImages.sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
                 const shuffledNonPeople = nonPeopleImages.sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
                 
-                // Combine and shuffle all images
-                const allImages = [...shuffledPeople, ...shuffledNonPeople].sort(() => 0.5 - Math.random());
-                const allImageTypes = [...Array(numPeopleImages).fill(true), ...Array(numNonPeopleImages).fill(false)];
-                const shuffledTypes = allImageTypes.sort(() => 0.5 - Math.random());
+                // Add one random non-human image
+                const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
                 
-                // Track which indices have people
+                // Combine and shuffle all images (8 from Pexels + 1 nonhuman)
+                const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                
+                // Track which indices have people and non-human images
                 this.captchaCorrectImages = [];
-                shuffledTypes.forEach((hasPerson, index) => {
-                    if (hasPerson) {
+                this.captchaNonHumanImages = [];
+                allImages.forEach((url, index) => {
+                    if (shuffledPeople.includes(url)) {
                         this.captchaCorrectImages.push(index);
+                    } else if (url === randomNonHumanImage) {
+                        this.captchaNonHumanImages.push(index);
                     }
                 });
                 
