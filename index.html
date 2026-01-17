@@ -628,46 +628,90 @@
         // CAPTCHA functions
         let captchaSelectedImages = [];
         let captchaCorrectImages = []; // Indices of images that contain humans
-
-        function loadCaptchaImages() {
+        
+        // Pexels API Configuration
+        const PEXELS_API_KEY = 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh';
+        
+        async function loadCaptchaImages() {
             const grid = document.getElementById('captcha-grid');
             grid.innerHTML = '';
             captchaSelectedImages = [];
             
-            // For now, use placeholder images. Later we'll create a script to change these.
-            // Using placeholder.com for now - in production, these will be actual images
-            const imageUrls = [
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+1',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+2',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+3',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+4',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+5',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+6',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+7',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+8',
-                'https://via.placeholder.com/200x200/cccccc/666666?text=Image+9'
-            ];
+            // Show loading state
+            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             
-            // For now, randomly assign which images contain humans (indices 1, 3, 5 for example)
-            // Later this will be determined by the actual images
-            captchaCorrectImages = [1, 3, 5]; // Example: images at indices 1, 3, and 5 contain humans
-            
-            imageUrls.forEach((url, index) => {
-                const container = document.createElement('div');
-                container.className = 'captcha-image-container';
-                container.dataset.index = index;
-                container.onclick = function() {
-                    toggleCaptchaImage(index);
-                };
+            try {
+                // Fetch images with people
+                const peopleResponse = await fetch('https://api.pexels.com/v1/search?query=people&per_page=30&orientation=square', {
+                    headers: {
+                        'Authorization': PEXELS_API_KEY
+                    }
+                });
+                const peopleData = await peopleResponse.json();
                 
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = 'CAPTCHA image ' + (index + 1);
-                img.loading = 'lazy';
+                // Fetch images without people (traffic, buildings, nature, etc.)
+                const nonPeopleQueries = ['traffic light', 'crosswalk', 'street', 'building', 'nature', 'animal'];
+                const randomQuery = nonPeopleQueries[Math.floor(Math.random() * nonPeopleQueries.length)];
+                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=30&orientation=square`, {
+                    headers: {
+                        'Authorization': PEXELS_API_KEY
+                    }
+                });
+                const nonPeopleData = await nonPeopleResponse.json();
                 
-                container.appendChild(img);
-                grid.appendChild(container);
-            });
+                // Get image URLs
+                const peopleImages = peopleData.photos ? peopleData.photos.map(p => p.src.medium) : [];
+                const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.medium) : [];
+                
+                // Randomly select images: 3-5 with people, rest without
+                const numPeopleImages = 3 + Math.floor(Math.random() * 3); // 3-5 people images
+                const numNonPeopleImages = 9 - numPeopleImages;
+                
+                // Shuffle and select
+                const shuffledPeople = peopleImages.sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
+                const shuffledNonPeople = nonPeopleImages.sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                
+                // Combine and shuffle all images
+                const allImages = [...shuffledPeople, ...shuffledNonPeople].sort(() => 0.5 - Math.random());
+                const allImageTypes = [...Array(numPeopleImages).fill(true), ...Array(numNonPeopleImages).fill(false)];
+                const shuffledTypes = allImageTypes.sort(() => 0.5 - Math.random());
+                
+                // Track which indices have people
+                captchaCorrectImages = [];
+                shuffledTypes.forEach((hasPerson, index) => {
+                    if (hasPerson) {
+                        captchaCorrectImages.push(index);
+                    }
+                });
+                
+                // Clear loading state
+                grid.innerHTML = '';
+                
+                // Create image containers
+                allImages.forEach((url, index) => {
+                    const container = document.createElement('div');
+                    container.className = 'captcha-image-container';
+                    container.dataset.index = index;
+                    container.onclick = function() {
+                        toggleCaptchaImage(index);
+                    };
+                    
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = 'CAPTCHA image ' + (index + 1);
+                    img.loading = 'lazy';
+                    img.onerror = function() {
+                        // If image fails to load, show placeholder
+                        this.src = 'https://via.placeholder.com/200x200/cccccc/666666?text=Image';
+                    };
+                    
+                    container.appendChild(img);
+                    grid.appendChild(container);
+                });
+            } catch (error) {
+                console.error('Error loading CAPTCHA images:', error);
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ea4335;">Error loading images. Please try again.</div>';
+            }
         }
 
         function toggleCaptchaImage(index) {
