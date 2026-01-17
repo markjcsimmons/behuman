@@ -888,7 +888,8 @@
         loadDetectionModel: async function() {
             if (!this.detectionModel && typeof cocoSsd !== 'undefined') {
                 try {
-                    this.detectionModel = await cocoSsd.load();
+                    // Use lighter model for faster detection
+                    this.detectionModel = await cocoSsd.load('lite_mobilenet_v2');
                 } catch (error) {
                     console.error('Error loading detection model:', error);
                 }
@@ -896,7 +897,7 @@
             return this.detectionModel;
         },
         
-        // Detect people in an image
+        // Detect people in an image (optimized for speed)
         detectPeopleInImage: async function(imageUrl) {
             try {
                 const model = await this.loadDetectionModel();
@@ -907,22 +908,29 @@
                 img.crossOrigin = 'anonymous';
                 
                 return new Promise((resolve) => {
+                    // Add timeout to prevent hanging
+                    const timeout = setTimeout(() => resolve(false), 3000);
+                    
                     img.onload = async () => {
+                        clearTimeout(timeout);
                         try {
                             const predictions = await model.detect(img);
-                            // Check if any detection is a "person" class
-                            const hasPerson = predictions.some(pred => pred.class === 'person');
+                            // Check if any detection is a "person" class (lower threshold for speed)
+                            const hasPerson = predictions.some(pred => pred.class === 'person' && pred.score > 0.4);
                             resolve(hasPerson);
                         } catch (error) {
                             console.error('Error detecting people:', error);
                             resolve(false);
                         }
                     };
-                    img.onerror = () => resolve(false);
+                    img.onerror = () => {
+                        clearTimeout(timeout);
+                        resolve(false);
+                    };
                     img.src = imageUrl;
                 });
             } catch (error) {
-                console.error('Error in detectPeopleInImage:', error);
+                // If detection fails, assume no person (safer default)
                 return false;
             }
         },
@@ -940,7 +948,7 @@
                 const peoplePage = Math.floor(Math.random() * 10) + 1; // Random page 1-10
                 
                 // Fetch images with people
-                const peopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomPeopleQuery)}&per_page=30&page=${peoplePage}&orientation=square`, {
+                const peopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomPeopleQuery)}&per_page=15&page=${peoplePage}&orientation=square`, {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
@@ -952,7 +960,7 @@
                 const randomQuery = nonPeopleQueries[Math.floor(Math.random() * nonPeopleQueries.length)];
                 const nonPeoplePage = Math.floor(Math.random() * 10) + 1; // Random page 1-10
                 
-                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=30&page=${nonPeoplePage}&orientation=square`, {
+                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=15&page=${nonPeoplePage}&orientation=square`, {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
@@ -964,11 +972,12 @@
                 const peoplePhotos = peopleData.photos ? peopleData.photos : [];
                 const nonPeoplePhotos = nonPeopleData.photos ? nonPeopleData.photos : [];
                 
-                // Collect up to 40 images (mix of both types)
-                const mixedPhotos = [...peoplePhotos.slice(0, 20), ...nonPeoplePhotos.slice(0, 20)]
-                    .sort(() => 0.5 - Math.random()).slice(0, 40);
+                // Collect fewer images (15 total) for faster processing
+                const mixedPhotos = [...peoplePhotos.slice(0, 8), ...nonPeoplePhotos.slice(0, 7)]
+                    .sort(() => 0.5 - Math.random()).slice(0, 15);
                 
-                allImageUrls.push(...mixedPhotos.map(p => p.src.medium));
+                // Use small images instead of medium for faster loading
+                allImageUrls.push(...mixedPhotos.map(p => p.src.small || p.src.medium));
                 
                 // Load detection libraries if not already loaded
                 await this.loadDetectionLibraries();
@@ -989,9 +998,9 @@
                 // Load detection model
                 await this.loadDetectionModel();
                 
-                // Detect people in all images
+                // Detect people in images (limit to 15 for faster processing)
                 const detectionResults = await Promise.all(
-                    allImageUrls.map(url => this.detectPeopleInImage(url))
+                    allImageUrls.slice(0, 15).map(url => this.detectPeopleInImage(url))
                 );
                 
                 // Separate images with and without people
@@ -1108,7 +1117,7 @@
             
             try {
                 // Fetch images with people
-                const peopleResponse = await fetch('https://api.pexels.com/v1/search?query=people&per_page=30&orientation=square', {
+                const peopleResponse = await fetch('https://api.pexels.com/v1/search?query=people&per_page=15&orientation=square', {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
@@ -1118,7 +1127,7 @@
                 // Fetch images without people (traffic, buildings, nature, etc.)
                 const nonPeopleQueries = ['traffic light', 'crosswalk', 'street', 'building', 'nature', 'animal'];
                 const randomQuery = nonPeopleQueries[Math.floor(Math.random() * nonPeopleQueries.length)];
-                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=30&orientation=square`, {
+                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=15&orientation=square`, {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
