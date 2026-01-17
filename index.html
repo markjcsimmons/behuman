@@ -860,8 +860,8 @@
                     }
                 });
                 
-                // Select 3-4 images with people, rest without
-                const numPeopleImages = Math.min(3 + Math.floor(Math.random() * 2), imagesWithPeople.length); // 3-4 people images
+                // Select at least 3 images with people (3-4), rest without
+                const numPeopleImages = Math.max(3, Math.min(3 + Math.floor(Math.random() * 2), imagesWithPeople.length)); // At least 3, up to 4 people images
                 // We need 8 images total from Pexels (9 - 1 nonhuman image)
                 const numNonPeopleImages = 8 - numPeopleImages;
                 
@@ -979,7 +979,7 @@
                 const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.medium) : [];
                 
                 // Randomly select images: 3-5 with people, rest without
-                const numPeopleImages = 3 + Math.floor(Math.random() * 2); // 3-4 people images
+                const numPeopleImages = Math.max(3, 3 + Math.floor(Math.random() * 2)); // At least 3, up to 4 people images
                 const numNonPeopleImages = 9 - numPeopleImages;
                 
                 // Shuffle and select
@@ -1055,13 +1055,13 @@
             if (controls) controls.style.display = 'none';
             if (verifying) verifying.classList.add('active');
             
-            // Verify after a short delay
+            // Verify after a short delay - ONLY when Submit button is clicked
             setTimeout(() => {
-                verifyCaptcha(false);
+                verifyCaptcha();
             }, 300);
         }
 
-        function verifyCaptcha(autoVerify = false) {
+        function verifyCaptcha() {
             // Check if any non-human images are selected - if so, fail immediately
             const selectedNonHuman = captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
             
