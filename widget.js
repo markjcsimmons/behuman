@@ -1229,6 +1229,9 @@
         refreshCaptcha: function() {
             // Clear preloaded data and fetch new images
             this.preloadedCaptchaData = null;
+            this.captchaSelectedImages = [];
+            this.captchaCorrectImages = [];
+            this.captchaNonHumanImages = [];
             const self = this;
             this.preloadCaptchaImages().then(() => {
                 // Once new images are preloaded, render them
