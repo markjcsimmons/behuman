@@ -1079,15 +1079,9 @@
             const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
             
             if (selectedCorrect && captchaCorrectImages.length > 0) {
-                // All images with people are selected - show verifying state
-                const grid = document.getElementById('captcha-grid');
-                const controls = document.querySelector('.captcha-controls');
+                // All images with people are selected - verified
+                // Verifying state should already be showing from submitCaptcha()
                 const verifying = document.getElementById('captcha-verifying');
-                
-                // Hide grid and controls, show verifying spinner
-                if (grid) grid.style.display = 'none';
-                if (controls) controls.style.display = 'none';
-                if (verifying) verifying.classList.add('active');
                 
                 // Add longer delay before showing Verified Human screen (2-3 seconds)
                 const delay = 2000 + Math.random() * 1000; // 2-3 seconds
@@ -1096,8 +1090,10 @@
                     document.getElementById('captcha-screen').style.display = 'none';
                     showResult(true);
                 }, delay);
-            } else if (!autoVerify) {
-                // Manual verify button clicked but not all correct images selected
+            } else {
+                // Submit button clicked but not all correct images selected
+                const verifying = document.getElementById('captcha-verifying');
+                if (verifying) verifying.classList.remove('active');
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(false, true); // Mark as CAPTCHA failure
                 // Start preloading new images immediately
