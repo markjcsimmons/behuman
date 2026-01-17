@@ -532,6 +532,9 @@
             document.getElementById('initial-screen').style.display = 'none';
             document.getElementById('statements-screen').style.display = 'block';
             document.getElementById('result-screen').style.display = 'none';
+            
+            // Start preloading CAPTCHA images in the background
+            preloadCaptchaImages();
         }
 
         function submitVerification() {
@@ -628,11 +631,121 @@
         // CAPTCHA functions
         let captchaSelectedImages = [];
         let captchaCorrectImages = []; // Indices of images that contain humans
+        let preloadedCaptchaData = null; // Store preloaded image data
         
         // Pexels API Configuration
         const PEXELS_API_KEY = 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh';
         
-        async function loadCaptchaImages() {
+        // Preload CAPTCHA images (fetch data and cache images)
+        async function preloadCaptchaImages() {
+            if (preloadedCaptchaData) {
+                return; // Already preloading or preloaded
+            }
+            
+            try {
+                // Fetch images with people
+                const peopleResponse = await fetch('https://api.pexels.com/v1/search?query=people&per_page=30&orientation=square', {
+                    headers: {
+                        'Authorization': PEXELS_API_KEY
+                    }
+                });
+                const peopleData = await peopleResponse.json();
+                
+                // Fetch images without people (traffic, buildings, nature, etc.)
+                const nonPeopleQueries = ['traffic light', 'crosswalk', 'street', 'building', 'nature', 'animal'];
+                const randomQuery = nonPeopleQueries[Math.floor(Math.random() * nonPeopleQueries.length)];
+                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=30&orientation=square`, {
+                    headers: {
+                        'Authorization': PEXELS_API_KEY
+                    }
+                });
+                const nonPeopleData = await nonPeopleResponse.json();
+                
+                // Get image URLs
+                const peopleImages = peopleData.photos ? peopleData.photos.map(p => p.src.medium) : [];
+                const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.medium) : [];
+                
+                // Randomly select images: 3-5 with people, rest without
+                const numPeopleImages = 3 + Math.floor(Math.random() * 3); // 3-5 people images
+                const numNonPeopleImages = 9 - numPeopleImages;
+                
+                // Shuffle and select
+                const shuffledPeople = peopleImages.sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
+                const shuffledNonPeople = nonPeopleImages.sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                
+                // Combine and shuffle all images
+                const allImages = [...shuffledPeople, ...shuffledNonPeople].sort(() => 0.5 - Math.random());
+                const allImageTypes = [...Array(numPeopleImages).fill(true), ...Array(numNonPeopleImages).fill(false)];
+                const shuffledTypes = allImageTypes.sort(() => 0.5 - Math.random());
+                
+                // Track which indices have people
+                const correctImages = [];
+                shuffledTypes.forEach((hasPerson, index) => {
+                    if (hasPerson) {
+                        correctImages.push(index);
+                    }
+                });
+                
+                // Store preloaded data
+                preloadedCaptchaData = {
+                    images: allImages,
+                    correctImages: correctImages
+                };
+                
+                // Preload images into browser cache
+                allImages.forEach(url => {
+                    const img = new Image();
+                    img.src = url;
+                });
+            } catch (error) {
+                console.error('Error preloading CAPTCHA images:', error);
+                preloadedCaptchaData = null;
+            }
+        }
+        
+        // Render preloaded CAPTCHA images
+        function loadCaptchaImages() {
+            const grid = document.getElementById('captcha-grid');
+            grid.innerHTML = '';
+            captchaSelectedImages = [];
+            
+            // If we have preloaded data, use it
+            if (preloadedCaptchaData) {
+                captchaCorrectImages = preloadedCaptchaData.correctImages;
+                const allImages = preloadedCaptchaData.images;
+                
+                // Create image containers
+                allImages.forEach((url, index) => {
+                    const container = document.createElement('div');
+                    container.className = 'captcha-image-container';
+                    container.dataset.index = index;
+                    container.onclick = function() {
+                        toggleCaptchaImage(index);
+                    };
+                    
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = 'CAPTCHA image ' + (index + 1);
+                    img.loading = 'lazy';
+                    img.onerror = function() {
+                        // If image fails to load, show placeholder
+                        this.src = 'https://via.placeholder.com/200x200/cccccc/666666?text=Image';
+                    };
+                    
+                    container.appendChild(img);
+                    grid.appendChild(container);
+                });
+                
+                // Clear preloaded data so next time will fetch fresh
+                preloadedCaptchaData = null;
+            } else {
+                // Fallback: load on demand if not preloaded
+                loadCaptchaImagesAsync();
+            }
+        }
+        
+        // Fallback async loading (if preload didn't happen)
+        async function loadCaptchaImagesAsync() {
             const grid = document.getElementById('captcha-grid');
             grid.innerHTML = '';
             captchaSelectedImages = [];
@@ -745,7 +858,12 @@
         }
 
         function refreshCaptcha() {
-            loadCaptchaImages();
+            // Clear preloaded data and fetch new images
+            preloadedCaptchaData = null;
+            preloadCaptchaImages().then(() => {
+                // Once new images are preloaded, render them
+                loadCaptchaImages();
+            });
         }
 
         function shareVerification() {
