@@ -1047,7 +1047,17 @@
             const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
             
             if (selectedCorrect && captchaCorrectImages.length > 0) {
-                // All images with people are selected - verify automatically
+                // All images with people are selected - show verifying state immediately
+                const grid = document.getElementById('captcha-grid');
+                const controls = document.querySelector('.captcha-controls');
+                const verifying = document.getElementById('captcha-verifying');
+                
+                // Hide grid and controls, show verifying spinner immediately
+                if (grid) grid.style.display = 'none';
+                if (controls) controls.style.display = 'none';
+                if (verifying) verifying.classList.add('active');
+                
+                // Small delay before actual verification
                 setTimeout(() => {
                     verifyCaptcha(true);
                 }, 300); // Small delay for visual feedback
