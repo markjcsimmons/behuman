@@ -202,33 +202,40 @@
                     padding: 30px;
                     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
                     position: relative;
+                    width: 100%;
+                    max-width: 500px;
                 }
                 
                 .behuman-captcha-banner {
                     background-color: #4285f4;
                     color: white;
-                    padding: 15px 20px;
-                    border-radius: 4px;
-                    margin-bottom: 20px;
+                    padding: 12px 20px;
+                    border-radius: 2px;
+                    margin-bottom: 16px;
                     text-align: center;
+                    width: 100%;
+                    box-sizing: border-box;
                 }
                 
                 .behuman-captcha-banner-text {
-                    font-size: 16px;
+                    font-size: 14px;
                     font-weight: 400;
+                    line-height: 1.5;
                 }
                 
                 .behuman-captcha-banner-text strong {
-                    font-size: 20px;
+                    font-size: 18px;
                     font-weight: 600;
                     font-style: italic;
+                    display: inline-block;
+                    margin-left: 4px;
                 }
                 
                 .behuman-captcha-grid {
                     display: grid;
                     grid-template-columns: repeat(3, 1fr);
-                    gap: 10px;
-                    margin-bottom: 20px;
+                    gap: 8px;
+                    margin-bottom: 16px;
                 }
                 
                 .behuman-captcha-image-container {
@@ -236,10 +243,15 @@
                     width: 100%;
                     padding-top: 100%;
                     border: 2px solid #ddd;
-                    border-radius: 4px;
+                    border-radius: 2px;
                     cursor: pointer;
                     overflow: hidden;
                     background-color: #f5f5f5;
+                    transition: border-color 0.2s;
+                }
+                
+                .behuman-captcha-image-container:hover {
+                    border-color: #bbb;
                 }
                 
                 .behuman-captcha-image-container.selected {
@@ -260,17 +272,17 @@
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-top: 20px;
+                    margin-top: 12px;
                 }
                 
                 .behuman-captcha-icons {
                     display: flex;
-                    gap: 10px;
+                    gap: 8px;
                 }
                 
                 .behuman-captcha-icon {
-                    width: 40px;
-                    height: 40px;
+                    width: 36px;
+                    height: 36px;
                     border-radius: 50%;
                     background-color: #f5f5f5;
                     border: 1px solid #ddd;
@@ -278,8 +290,10 @@
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
-                    font-size: 18px;
+                    font-size: 16px;
                     color: #666;
+                    transition: background-color 0.2s;
+                    user-select: none;
                 }
                 
                 .behuman-captcha-icon:hover {
@@ -492,7 +506,7 @@
                                 <div class="behuman-captcha-icon" title="Audio">🔊</div>
                                 <div class="behuman-captcha-icon" title="Info">ℹ</div>
                             </div>
-                            <button class="behuman-btn" onclick="BeHuman.verifyCaptcha()" style="background-color: #4285f4;">VERIFY</button>
+                            <button class="behuman-btn" onclick="BeHuman.verifyCaptcha()" style="background-color: #4285f4; min-height: 36px; padding: 10px 24px; font-size: 14px;">VERIFY</button>
                         </div>
                     </div>
                     
