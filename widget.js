@@ -976,8 +976,8 @@
                 const mixedPhotos = [...peoplePhotos.slice(0, 8), ...nonPeoplePhotos.slice(0, 7)]
                     .sort(() => 0.5 - Math.random()).slice(0, 15);
                 
-                // Use small images instead of medium for faster loading
-                allImageUrls.push(...mixedPhotos.map(p => p.src.small || p.src.medium));
+                // Use tiny images (lowest resolution) for fastest loading
+                allImageUrls.push(...mixedPhotos.map(p => p.src.tiny || p.src.small || p.src.medium));
                 
                 // Load detection libraries if not already loaded
                 await this.loadDetectionLibraries();
@@ -1134,9 +1134,9 @@
                 });
                 const nonPeopleData = await nonPeopleResponse.json();
                 
-                // Get image URLs
-                const peopleImages = peopleData.photos ? peopleData.photos.map(p => p.src.medium) : [];
-                const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.medium) : [];
+                // Get image URLs - use tiny (lowest resolution) for fastest loading
+                const peopleImages = peopleData.photos ? peopleData.photos.map(p => p.src.tiny || p.src.small || p.src.medium) : [];
+                const nonPeopleImages = nonPeopleData.photos ? nonPeopleData.photos.map(p => p.src.tiny || p.src.small || p.src.medium) : [];
                 
                 // Select at least 3 images with people (3-4), rest without
                 const numPeopleImages = Math.max(3, 3 + Math.floor(Math.random() * 2)); // At least 3, up to 4 people images
