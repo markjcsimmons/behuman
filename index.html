@@ -724,18 +724,25 @@
             }
             
             try {
+                // Use varied queries for people images
+                const peopleQueries = ['people', 'person', 'human', 'crowd', 'group of people', 'family', 'friends', 'team'];
+                const randomPeopleQuery = peopleQueries[Math.floor(Math.random() * peopleQueries.length)];
+                const peoplePage = Math.floor(Math.random() * 10) + 1; // Random page 1-10
+                
                 // Fetch images with people
-                const peopleResponse = await fetch('https://api.pexels.com/v1/search?query=people&per_page=30&orientation=square', {
+                const peopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomPeopleQuery)}&per_page=30&page=${peoplePage}&orientation=square`, {
                     headers: {
                         'Authorization': PEXELS_API_KEY
                     }
                 });
                 const peopleData = await peopleResponse.json();
                 
-                // Fetch images without people (traffic, buildings, nature, etc.)
-                const nonPeopleQueries = ['traffic light', 'crosswalk', 'street', 'building', 'nature', 'animal'];
+                // Use varied queries for non-people images
+                const nonPeopleQueries = ['traffic light', 'crosswalk', 'street', 'building', 'nature', 'animal', 'mountain', 'ocean', 'tree', 'car', 'bicycle', 'architecture', 'landscape', 'city', 'park'];
                 const randomQuery = nonPeopleQueries[Math.floor(Math.random() * nonPeopleQueries.length)];
-                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=30&orientation=square`, {
+                const nonPeoplePage = Math.floor(Math.random() * 10) + 1; // Random page 1-10
+                
+                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=30&page=${nonPeoplePage}&orientation=square`, {
                     headers: {
                         'Authorization': PEXELS_API_KEY
                     }
