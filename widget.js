@@ -1176,8 +1176,12 @@
             
             if (selectedCorrect && this.captchaCorrectImages.length > 0) {
                 // All images with people are selected - verified
-                document.getElementById('behuman-captcha-screen').style.display = 'none';
-                this.showResult(true);
+                // Add delay before showing Verified Human screen
+                const self = this;
+                setTimeout(() => {
+                    document.getElementById('behuman-captcha-screen').style.display = 'none';
+                    self.showResult(true);
+                }, 1000); // 1 second delay
             } else if (!autoVerify) {
                 // Manual verify button clicked but not all correct images selected
                 document.getElementById('behuman-captcha-screen').style.display = 'none';

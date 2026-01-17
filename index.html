@@ -33,9 +33,9 @@
     <meta name="twitter:image" content="https://markjcsimmons.github.io/behuman/badge.png">
     <meta name="twitter:image:alt" content="Verified Human Badge">
     
-    <!-- TensorFlow.js for image detection -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+    <!-- TensorFlow.js for image detection (load asynchronously) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" defer></script>
     
     <style>
         * {
@@ -672,9 +672,15 @@
         async function loadDetectionModel() {
             if (!detectionModel) {
                 try {
+                    // Check if cocoSsd is available
+                    if (typeof cocoSsd === 'undefined') {
+                        console.warn('COCO-SSD not loaded, falling back to query-based detection');
+                        return null;
+                    }
                     detectionModel = await cocoSsd.load();
                 } catch (error) {
                     console.error('Error loading detection model:', error);
+                    return null;
                 }
             }
             return detectionModel;
@@ -974,8 +980,11 @@
             
             if (selectedCorrect && captchaCorrectImages.length > 0) {
                 // All images with people are selected - verified
-                document.getElementById('captcha-screen').style.display = 'none';
-                showResult(true);
+                // Add delay before showing Verified Human screen
+                setTimeout(() => {
+                    document.getElementById('captcha-screen').style.display = 'none';
+                    showResult(true);
+                }, 1000); // 1 second delay
             } else if (!autoVerify) {
                 // Manual verify button clicked but not all correct images selected
                 document.getElementById('captcha-screen').style.display = 'none';
