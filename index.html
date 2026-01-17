@@ -860,9 +860,8 @@
                     }
                 });
                 
-                // Select 1-2 images with people (max 25% of 9 images), rest without
-                const maxPeopleImages = 2; // 25% of 9 = 2.25, so max 2 images
-                const numPeopleImages = Math.min(1 + Math.floor(Math.random() * 2), Math.min(maxPeopleImages, imagesWithPeople.length)); // 1-2 people images
+                // Select 3-4 images with people, rest without
+                const numPeopleImages = Math.min(3 + Math.floor(Math.random() * 2), imagesWithPeople.length); // 3-4 people images
                 // We need 8 images total from Pexels (9 - 1 nonhuman image)
                 const numNonPeopleImages = 8 - numPeopleImages;
                 
