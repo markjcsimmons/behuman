@@ -694,6 +694,19 @@
 
             // Close widget instructions if open
             closeWidgetInstructions();
+            
+            // Clear all CAPTCHA state to prevent stuck states
+            preloadedCaptchaData = null;
+            captchaSelectedImages = [];
+            captchaCorrectImages = [];
+            captchaNonHumanImages = [];
+            isCaptchaFailure = false;
+            
+            // Hide verifying state if visible
+            const verifying = document.getElementById('captcha-verifying');
+            if (verifying) {
+                verifying.classList.remove('active');
+            }
 
             // Show initial screen and hide others
             document.getElementById('initial-screen').style.display = 'block';
@@ -1072,12 +1085,14 @@
             const selectedNonHuman = captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
             
             if (selectedNonHuman) {
-                // Non-human image selected - fail and start loading new CAPTCHA images immediately
+                // Non-human image selected - fail
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(false, true); // Mark as CAPTCHA failure
-                // Start preloading new images immediately
+                // Clear preloaded data - new images will load when user tries again from home
                 preloadedCaptchaData = null;
-                preloadCaptchaImages();
+                captchaSelectedImages = [];
+                captchaCorrectImages = [];
+                captchaNonHumanImages = [];
                 return;
             }
             
@@ -1102,9 +1117,11 @@
                 if (verifying) verifying.classList.remove('active');
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(false, true); // Mark as CAPTCHA failure
-                // Start preloading new images immediately
+                // Clear preloaded data - new images will load when user tries again from home
                 preloadedCaptchaData = null;
-                preloadCaptchaImages();
+                captchaSelectedImages = [];
+                captchaCorrectImages = [];
+                captchaNonHumanImages = [];
             }
         }
 
@@ -1114,6 +1131,7 @@
             captchaSelectedImages = [];
             captchaCorrectImages = [];
             captchaNonHumanImages = [];
+            // Trigger new preload - this is the only exception to the rule (refresh button)
             preloadCaptchaImages().then(() => {
                 // Once new images are preloaded, render them
                 document.getElementById('captcha-screen').style.display = 'block';

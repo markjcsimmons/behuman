@@ -652,12 +652,25 @@
         resetToHome: function() {
             document.getElementById('behuman-initial-screen').style.display = 'block';
             document.getElementById('behuman-statements-screen').style.display = 'none';
+            document.getElementById('behuman-captcha-screen').style.display = 'none';
             document.getElementById('behuman-result-screen').style.display = 'none';
             
             // Reset checkboxes
             for (let i = 1; i <= 7; i++) {
                 const checkbox = document.getElementById('behuman-stmt' + i);
                 if (checkbox) checkbox.checked = false;
+            }
+            
+            // Clear all CAPTCHA state to prevent stuck states
+            this.preloadedCaptchaData = null;
+            this.captchaSelectedImages = [];
+            this.captchaCorrectImages = [];
+            this.captchaNonHumanImages = [];
+            
+            // Hide verifying state if visible
+            const verifying = document.getElementById('behuman-captcha-verifying');
+            if (verifying) {
+                verifying.classList.remove('active');
             }
             
             // Close widget instructions if open
@@ -1233,14 +1246,16 @@
             const selectedNonHuman = this.captchaNonHumanImages.some(idx => this.captchaSelectedImages.includes(idx));
             
             if (selectedNonHuman) {
-                // Non-human image selected - fail and start loading new CAPTCHA images immediately
+                // Non-human image selected - fail
                 const verifying = document.getElementById('behuman-captcha-verifying');
                 if (verifying) verifying.classList.remove('active');
                 document.getElementById('behuman-captcha-screen').style.display = 'none';
                 this.showResult(false, true); // Mark as CAPTCHA failure
-                // Start preloading new images immediately
+                // Clear preloaded data - new images will load when user tries again from home
                 this.preloadedCaptchaData = null;
-                this.preloadCaptchaImages();
+                this.captchaSelectedImages = [];
+                this.captchaCorrectImages = [];
+                this.captchaNonHumanImages = [];
                 return;
             }
             
@@ -1266,9 +1281,11 @@
                 if (verifying) verifying.classList.remove('active');
                 document.getElementById('behuman-captcha-screen').style.display = 'none';
                 this.showResult(false, true); // Mark as CAPTCHA failure
-                // Start preloading new images immediately
+                // Clear preloaded data - new images will load when user tries again from home
                 this.preloadedCaptchaData = null;
-                this.preloadCaptchaImages();
+                this.captchaSelectedImages = [];
+                this.captchaCorrectImages = [];
+                this.captchaNonHumanImages = [];
             }
         },
         
