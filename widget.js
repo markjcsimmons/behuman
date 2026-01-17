@@ -656,7 +656,7 @@
         },
         
         // Submit verification
-        submitVerification: function() {
+        submitVerification: async function() {
             const checkboxes = [];
             for (let i = 1; i <= 7; i++) {
                 checkboxes.push(document.getElementById('behuman-stmt' + i));
@@ -665,6 +665,32 @@
             const allChecked = checkboxes.every(cb => cb.checked);
             
             if (allChecked) {
+                // Wait for images to be loaded before showing CAPTCHA screen
+                if (!this.preloadedCaptchaData || !this.preloadedCaptchaData.loaded) {
+                    // Show loading state on statements screen
+                    const submitBtn = document.getElementById('behuman-submit-btn');
+                    const originalText = submitBtn ? submitBtn.textContent : '';
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Loading images...';
+                        submitBtn.disabled = true;
+                    }
+                    
+                    // Wait for preloading to complete
+                    if (!this.preloadedCaptchaData) {
+                        await this.preloadCaptchaImages();
+                    } else {
+                        // Wait for images to finish loading
+                        while (!this.preloadedCaptchaData.loaded) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        }
+                    }
+                    
+                    if (submitBtn) {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                }
+                
                 // Show CAPTCHA screen
                 document.getElementById('behuman-statements-screen').style.display = 'none';
                 document.getElementById('behuman-captcha-screen').style.display = 'block';
@@ -867,14 +893,23 @@
                 // Store preloaded data
                 this.preloadedCaptchaData = {
                     images: allImages,
-                    correctImages: correctImages
+                    correctImages: correctImages,
+                    loaded: false
                 };
                 
-                // Preload images into browser cache
-                allImages.forEach(url => {
-                    const img = new Image();
-                    img.src = url;
+                // Preload images into browser cache and wait for all to load
+                const imagePromises = allImages.map(url => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(url);
+                        img.onerror = () => resolve(url); // Resolve anyway, will show placeholder if fails
+                        img.src = url;
+                    });
                 });
+                
+                // Wait for all images to load
+                await Promise.all(imagePromises);
+                this.preloadedCaptchaData.loaded = true;
             } catch (error) {
                 console.error('Error preloading CAPTCHA images:', error);
                 this.preloadedCaptchaData = null;
@@ -887,8 +922,8 @@
             grid.innerHTML = '';
             this.captchaSelectedImages = [];
             
-            // If we have preloaded data, use it
-            if (this.preloadedCaptchaData) {
+            // If we have preloaded data and it's loaded, use it
+            if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded) {
                 this.captchaCorrectImages = this.preloadedCaptchaData.correctImages;
                 const allImages = this.preloadedCaptchaData.images;
                 

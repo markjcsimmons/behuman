@@ -537,7 +537,7 @@
             preloadCaptchaImages();
         }
 
-        function submitVerification() {
+        async function submitVerification() {
             const checkboxes = [
                 document.getElementById('stmt1'),
                 document.getElementById('stmt2'),
@@ -551,6 +551,32 @@
             const allChecked = checkboxes.every(cb => cb.checked);
             
             if (allChecked) {
+                // Wait for images to be loaded before showing CAPTCHA screen
+                if (!preloadedCaptchaData || !preloadedCaptchaData.loaded) {
+                    // Show loading state on statements screen
+                    const submitBtn = document.querySelector('#statements-screen .btn');
+                    const originalText = submitBtn ? submitBtn.textContent : '';
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Loading images...';
+                        submitBtn.disabled = true;
+                    }
+                    
+                    // Wait for preloading to complete
+                    if (!preloadedCaptchaData) {
+                        await preloadCaptchaImages();
+                    } else {
+                        // Wait for images to finish loading
+                        while (!preloadedCaptchaData.loaded) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        }
+                    }
+                    
+                    if (submitBtn) {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                }
+                
                 // Show CAPTCHA screen
                 document.getElementById('statements-screen').style.display = 'none';
                 document.getElementById('captcha-screen').style.display = 'block';
@@ -689,14 +715,23 @@
                 // Store preloaded data
                 preloadedCaptchaData = {
                     images: allImages,
-                    correctImages: correctImages
+                    correctImages: correctImages,
+                    loaded: false
                 };
                 
-                // Preload images into browser cache
-                allImages.forEach(url => {
-                    const img = new Image();
-                    img.src = url;
+                // Preload images into browser cache and wait for all to load
+                const imagePromises = allImages.map(url => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(url);
+                        img.onerror = () => resolve(url); // Resolve anyway, will show placeholder if fails
+                        img.src = url;
+                    });
                 });
+                
+                // Wait for all images to load
+                await Promise.all(imagePromises);
+                preloadedCaptchaData.loaded = true;
             } catch (error) {
                 console.error('Error preloading CAPTCHA images:', error);
                 preloadedCaptchaData = null;
@@ -709,12 +744,12 @@
             grid.innerHTML = '';
             captchaSelectedImages = [];
             
-            // If we have preloaded data, use it
-            if (preloadedCaptchaData) {
+            // If we have preloaded data and it's loaded, use it
+            if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
                 captchaCorrectImages = preloadedCaptchaData.correctImages;
                 const allImages = preloadedCaptchaData.images;
                 
-                // Create image containers
+                // Create image containers - images are already loaded, so they'll display immediately
                 allImages.forEach((url, index) => {
                     const container = document.createElement('div');
                     container.className = 'captcha-image-container';
@@ -726,7 +761,6 @@
                     const img = document.createElement('img');
                     img.src = url;
                     img.alt = 'CAPTCHA image ' + (index + 1);
-                    img.loading = 'lazy';
                     img.onerror = function() {
                         // If image fails to load, show placeholder
                         this.src = 'https://via.placeholder.com/200x200/cccccc/666666?text=Image';
