@@ -314,12 +314,17 @@
         .captcha-verifying {
             display: none;
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px;
             color: #666;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .captcha-verifying.active {
-            display: block;
+            display: flex;
         }
 
         .captcha-verifying-text {
