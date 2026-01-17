@@ -662,11 +662,22 @@
         // CAPTCHA functions
         let captchaSelectedImages = [];
         let captchaCorrectImages = []; // Indices of images that contain humans
+        let captchaNonHumanImages = []; // Indices of explicitly non-human images
         let preloadedCaptchaData = null; // Store preloaded image data
         let detectionModel = null; // TensorFlow.js COCO-SSD model
         
         // Pexels API Configuration
         const PEXELS_API_KEY = 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh';
+        
+        // Non-human images from local folder
+        const NON_HUMAN_IMAGES = [
+            'nonhumans/2025-10-17T182150Z_1743657662_RC23TGANHF4A_RTRMADP_3_BRITAIN-ROYALS-ANDREW-1024x707.jpg',
+            'nonhumans/2025-11-12T133552Z_423281103_RC2FKHA3DYS8_RTRMADP_3_USA-MIGRATION-SURVEILLANCE-1024x683.jpg',
+            'nonhumans/jeffrey-epstein-same-name.webp',
+            'nonhumans/stephen-miller-gunning-for-kristi-noem-as-her-star-fades-at-the-white-house-report.webp',
+            'nonhumans/t-dennis-kozlowski-tyco-1.webp',
+            'nonhumans/virus_outbreak_belarus_20328_c0-247-3426-2244_s885x516.webp'
+        ];
         
         // Load TensorFlow.js detection model
         async function loadDetectionModel() {
@@ -796,7 +807,8 @@
                 // Select 1-2 images with people (max 25% of 9 images), rest without
                 const maxPeopleImages = 2; // 25% of 9 = 2.25, so max 2 images
                 const numPeopleImages = Math.min(1 + Math.floor(Math.random() * 2), Math.min(maxPeopleImages, imagesWithPeople.length)); // 1-2 people images
-                const numNonPeopleImages = 9 - numPeopleImages;
+                // We need 8 images total from Pexels (9 - 1 nonhuman image)
+                const numNonPeopleImages = 8 - numPeopleImages;
                 
                 // Shuffle and select
                 const selectedPeopleImages = imagesWithPeople.sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
@@ -806,16 +818,22 @@
                 const finalPeopleImages = selectedPeopleImages.length >= numPeopleImages 
                     ? selectedPeopleImages.slice(0, numPeopleImages)
                     : selectedPeopleImages;
-                const finalNonPeopleImages = selectedNonPeopleImages.slice(0, 9 - finalPeopleImages.length);
+                const finalNonPeopleImages = selectedNonPeopleImages.slice(0, numNonPeopleImages - (numPeopleImages - finalPeopleImages.length));
                 
-                // Combine and shuffle all images
-                const allImages = [...finalPeopleImages, ...finalNonPeopleImages].sort(() => 0.5 - Math.random());
+                // Add one random non-human image
+                const randomNonHumanImage = NON_HUMAN_IMAGES[Math.floor(Math.random() * NON_HUMAN_IMAGES.length)];
                 
-                // Track which indices have people (based on actual detection)
+                // Combine and shuffle all images (8 from Pexels + 1 nonhuman)
+                const allImages = [...finalPeopleImages, ...finalNonPeopleImages, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                
+                // Track which indices have people (based on actual detection) and non-human images
                 const correctImages = [];
+                const nonHumanIndices = [];
                 allImages.forEach((url, index) => {
                     if (finalPeopleImages.includes(url)) {
                         correctImages.push(index);
+                    } else if (url === randomNonHumanImage) {
+                        nonHumanIndices.push(index);
                     }
                 });
                 
@@ -823,6 +841,7 @@
                 preloadedCaptchaData = {
                     images: allImages,
                     correctImages: correctImages,
+                    nonHumanIndices: nonHumanIndices,
                     loaded: true
                 };
             } catch (error) {
@@ -840,6 +859,7 @@
             // If we have preloaded data and it's loaded, use it
             if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
                 captchaCorrectImages = preloadedCaptchaData.correctImages;
+                captchaNonHumanImages = preloadedCaptchaData.nonHumanIndices || [];
                 const allImages = preloadedCaptchaData.images;
                 
                 // Create image containers - images are already loaded, so they'll display immediately
@@ -983,6 +1003,20 @@
         }
 
         function verifyCaptcha(autoVerify = false) {
+            // Check if any non-human images are selected - if so, fail immediately
+            const selectedNonHuman = captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
+            
+            if (selectedNonHuman) {
+                // Non-human image selected - fail and refresh CAPTCHA
+                document.getElementById('captcha-screen').style.display = 'none';
+                showResult(false);
+                // Refresh CAPTCHA after showing result
+                setTimeout(() => {
+                    refreshCaptcha();
+                }, 2000);
+                return;
+            }
+            
             // Check if all correct images (with people) are selected
             const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
             
@@ -997,14 +1031,22 @@
                 // Manual verify button clicked but not all correct images selected
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(false);
+                // Refresh CAPTCHA after showing result
+                setTimeout(() => {
+                    refreshCaptcha();
+                }, 2000);
             }
         }
 
         function refreshCaptcha() {
             // Clear preloaded data and fetch new images
             preloadedCaptchaData = null;
+            captchaSelectedImages = [];
+            captchaCorrectImages = [];
+            captchaNonHumanImages = [];
             preloadCaptchaImages().then(() => {
                 // Once new images are preloaded, render them
+                document.getElementById('captcha-screen').style.display = 'block';
                 loadCaptchaImages();
             });
         }
