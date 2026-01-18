@@ -634,10 +634,13 @@
                 document.getElementById('captcha-screen').style.display = 'block';
                 loadCaptchaImages();
                 
-                // Preload fresh images in background for potential retry
-                // Clear current preloaded data and start loading new images
-                preloadedCaptchaData = null;
-                preloadCaptchaImages();
+                // Preload fresh images in background for potential retry (after a delay)
+                // This allows loadCaptchaImages to finish using current preloaded data first
+                setTimeout(() => {
+                    const currentPreloadedData = preloadedCaptchaData;
+                    preloadedCaptchaData = null;
+                    preloadCaptchaImages();
+                }, 100);
             } else {
                 // Show robot screen
                 showResult(false);
