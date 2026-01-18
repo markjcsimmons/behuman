@@ -629,10 +629,19 @@
                     }
                 }
                 
+                // Ensure images are fully preloaded before showing CAPTCHA
+                // Add a small additional delay to ensure DOM rendering is complete
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
                 // Show CAPTCHA screen
                 document.getElementById('statements-screen').style.display = 'none';
                 document.getElementById('captcha-screen').style.display = 'block';
+                
+                // Load images into grid
                 loadCaptchaImages();
+                
+                // Add a small delay to ensure grid is fully rendered before continuing
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 // Preload fresh images in background for potential retry (after a longer delay)
                 // This allows loadCaptchaImages to finish using current preloaded data first
@@ -642,7 +651,7 @@
                         preloadedCaptchaData = null;
                         preloadCaptchaImages();
                     }
-                }, 1000);
+                }, 2000);
             } else {
                 // Show robot screen
                 showResult(false);
