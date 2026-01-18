@@ -971,7 +971,7 @@
                 const peoplePage = Math.floor(Math.random() * 10) + 1; // Random page 1-10
                 
                 // Fetch images with people
-                const peopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomPeopleQuery)}&per_page=15&page=${peoplePage}&orientation=square`, {
+                const peopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomPeopleQuery)}&per_page=10&page=${peoplePage}&orientation=square`, {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
@@ -983,7 +983,7 @@
                 const randomQuery = nonPeopleQueries[Math.floor(Math.random() * nonPeopleQueries.length)];
                 const nonPeoplePage = Math.floor(Math.random() * 10) + 1; // Random page 1-10
                 
-                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=15&page=${nonPeoplePage}&orientation=square`, {
+                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=10&page=${nonPeoplePage}&orientation=square`, {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
@@ -995,9 +995,9 @@
                 const peoplePhotos = peopleData.photos ? peopleData.photos : [];
                 const nonPeoplePhotos = nonPeopleData.photos ? nonPeopleData.photos : [];
                 
-                // Collect fewer images (15 total) for faster processing
-                const mixedPhotos = [...peoplePhotos.slice(0, 8), ...nonPeoplePhotos.slice(0, 7)]
-                    .sort(() => 0.5 - Math.random()).slice(0, 15);
+                // Collect fewer images (10 total) for faster processing
+                const mixedPhotos = [...peoplePhotos.slice(0, 5), ...nonPeoplePhotos.slice(0, 5)]
+                    .sort(() => 0.5 - Math.random()).slice(0, 10);
                 
                 // Use tiny images (lowest resolution) for fastest loading
                 allImageUrls.push(...mixedPhotos.map(p => p.src.tiny || p.src.small || p.src.medium));
@@ -1021,9 +1021,9 @@
                 // Load detection model
                 await this.loadDetectionModel();
                 
-                // Detect people in images (limit to 15 for faster processing)
+                // Detect people in images (limit to 10 for faster processing)
                 const detectionResults = await Promise.all(
-                    allImageUrls.slice(0, 15).map(url => this.detectPeopleInImage(url))
+                    allImageUrls.slice(0, 10).map(url => this.detectPeopleInImage(url))
                 );
                 
                 // Separate images with and without people
@@ -1150,7 +1150,7 @@
             
             try {
                 // Fetch images with people
-                const peopleResponse = await fetch('https://api.pexels.com/v1/search?query=people&per_page=15&orientation=square', {
+                const peopleResponse = await fetch('https://api.pexels.com/v1/search?query=people&per_page=10&orientation=square', {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
@@ -1160,7 +1160,7 @@
                 // Fetch images without people (traffic, buildings, nature, etc.)
                 const nonPeopleQueries = ['traffic light', 'crosswalk', 'street', 'building', 'nature', 'animal'];
                 const randomQuery = nonPeopleQueries[Math.floor(Math.random() * nonPeopleQueries.length)];
-                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=15&orientation=square`, {
+                const nonPeopleResponse = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(randomQuery)}&per_page=10&orientation=square`, {
                     headers: {
                         'Authorization': this.pexelsApiKey
                     }
