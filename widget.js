@@ -1053,6 +1053,16 @@
                 // Add one random non-human image
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
                 
+                // Preload the nonhuman image as well
+                const nonHumanImagePromise = new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve({ url: randomNonHumanImage, img });
+                    img.onerror = () => resolve({ url: randomNonHumanImage, img: null });
+                    img.src = randomNonHumanImage;
+                });
+                
+                await nonHumanImagePromise;
+                
                 // Combine and shuffle all images (8 from Pexels + 1 nonhuman)
                 const allImages = [...finalPeopleImages, ...finalNonPeopleImages, randomNonHumanImage].sort(() => 0.5 - Math.random());
                 
@@ -1168,6 +1178,14 @@
                 
                 // Add one random non-human image
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
+                
+                // Preload the nonhuman image
+                await new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve(); // Continue even if image fails
+                    img.src = randomNonHumanImage;
+                });
                 
                 // Combine and shuffle all images (8 from Pexels + 1 nonhuman)
                 const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
