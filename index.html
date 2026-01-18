@@ -633,6 +633,11 @@
                 document.getElementById('statements-screen').style.display = 'none';
                 document.getElementById('captcha-screen').style.display = 'block';
                 loadCaptchaImages();
+                
+                // Preload fresh images in background for potential retry
+                // Clear current preloaded data and start loading new images
+                preloadedCaptchaData = null;
+                preloadCaptchaImages();
             } else {
                 // Show robot screen
                 showResult(false);
@@ -701,8 +706,8 @@
             // Close widget instructions if open
             closeWidgetInstructions();
             
-            // Clear all CAPTCHA state to prevent stuck states
-            preloadedCaptchaData = null;
+            // Clear only the selection state, but keep preloaded images if available
+            // This allows immediate CAPTCHA loading on retry
             captchaSelectedImages = [];
             captchaCorrectImages = [];
             captchaNonPeopleImages = [];
@@ -724,6 +729,7 @@
             
             // Start preloading images immediately when returning to home
             // This ensures images are ready faster if user goes through flow again
+            // If already preloaded, this will return immediately
             preloadCaptchaImages();
         }
 
@@ -822,6 +828,7 @@
         
         // Preload CAPTCHA images from local folder (much faster - no API calls or detection needed)
         async function preloadCaptchaImages() {
+            // If already loaded, return immediately
             if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
                 return; // Already preloaded
             }
@@ -941,8 +948,8 @@
                     grid.appendChild(container);
                 });
                 
-                // Clear preloaded data so next time will fetch fresh
-                preloadedCaptchaData = null;
+                // Don't clear preloaded data here - it will be reused for retry if needed
+                // New images will be preloaded in the background after CAPTCHA is shown
             } else {
                 // Fallback: load on demand if not preloaded
                 loadCaptchaImagesAsync();
