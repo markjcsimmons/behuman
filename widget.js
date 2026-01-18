@@ -506,7 +506,7 @@
                         </div>
                         <div class="behuman-statement-item">
                             <input type="checkbox" id="behuman-stmt7">
-                            <label for="behuman-stmt7">Machines are tools, not masters</label>
+                            <label for="behuman-stmt7">Machines are just tools</label>
                         </div>
                         <div style="margin-top: 20px; text-align: center;">
                             <button class="behuman-btn" id="behuman-submit-btn">Submit</button>
