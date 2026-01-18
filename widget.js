@@ -665,6 +665,7 @@
             this.preloadedCaptchaData = null;
             this.captchaSelectedImages = [];
             this.captchaCorrectImages = [];
+            this.captchaNonPeopleImages = [];
             this.captchaNonHumanImages = [];
             
             // Hide verifying state if visible
@@ -878,8 +879,9 @@
         
         // CAPTCHA functions
         captchaSelectedImages: [],
-        captchaCorrectImages: [], // Indices of images that contain humans
-        captchaNonHumanImages: [], // Indices of explicitly non-human images from local folder
+        captchaCorrectImages: [], // Indices of images that contain humans (must ALL be selected)
+        captchaNonPeopleImages: [], // Indices of non-people images from captcha-images/nonpeople_*.jpg (must NONE be selected)
+        captchaNonHumanImages: [], // Indices of explicitly non-human images from nonhumans folder (must NONE be selected)
         preloadedCaptchaData: null, // Store preloaded image data
         detectionModel: null, // TensorFlow.js COCO-SSD model
         
@@ -1005,12 +1007,15 @@
                 
                 await Promise.all(imagePromises);
                 
-                // Track which indices have people and non-human images
+                // Track which indices have people, non-people, and non-human images
                 const correctImages = [];
+                const nonPeopleIndices = [];
                 const nonHumanIndices = [];
                 allImages.forEach((url, index) => {
                     if (shuffledPeople.includes(url)) {
                         correctImages.push(index);
+                    } else if (shuffledNonPeople.includes(url)) {
+                        nonPeopleIndices.push(index);
                     } else if (url === randomNonHumanImage) {
                         nonHumanIndices.push(index);
                     }
@@ -1020,10 +1025,12 @@
                 this.preloadedCaptchaData = {
                     images: allImages,
                     correctImages: correctImages,
+                    nonPeopleIndices: nonPeopleIndices,
                     nonHumanIndices: nonHumanIndices,
                     loaded: true
                 };
                 this.captchaCorrectImages = correctImages;
+                this.captchaNonPeopleImages = nonPeopleIndices;
                 this.captchaNonHumanImages = nonHumanIndices;
             } catch (error) {
                 console.error('Error preloading CAPTCHA images:', error);
@@ -1040,6 +1047,7 @@
             // If we have preloaded data and it's loaded, use it
             if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded) {
                 this.captchaCorrectImages = this.preloadedCaptchaData.correctImages;
+                this.captchaNonPeopleImages = this.preloadedCaptchaData.nonPeopleIndices || [];
                 this.captchaNonHumanImages = this.preloadedCaptchaData.nonHumanIndices || [];
                 const allImages = this.preloadedCaptchaData.images;
                 
@@ -1112,12 +1120,15 @@
                 // Combine and shuffle all images
                 const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
                 
-                // Track which indices have people and non-human images
+                // Track which indices have people, non-people, and non-human images
                 this.captchaCorrectImages = [];
+                this.captchaNonPeopleImages = [];
                 this.captchaNonHumanImages = [];
                 allImages.forEach((url, index) => {
                     if (shuffledPeople.includes(url)) {
                         this.captchaCorrectImages.push(index);
+                    } else if (shuffledNonPeople.includes(url)) {
+                        this.captchaNonPeopleImages.push(index);
                     } else if (url === randomNonHumanImage) {
                         this.captchaNonHumanImages.push(index);
                     }
@@ -1188,11 +1199,14 @@
         },
         
         verifyCaptcha: function() {
-            // Check if any non-human images are selected - if so, fail immediately
+            // Check if any non-people images (from captcha-images/nonpeople_*.jpg) are selected - if so, fail immediately
+            const selectedNonPeople = this.captchaNonPeopleImages.some(idx => this.captchaSelectedImages.includes(idx));
+            
+            // Check if any non-human images (from nonhumans folder) are selected - if so, fail immediately
             const selectedNonHuman = this.captchaNonHumanImages.some(idx => this.captchaSelectedImages.includes(idx));
             
-            if (selectedNonHuman) {
-                // Non-human image selected - fail
+            if (selectedNonPeople || selectedNonHuman) {
+                // Non-people or non-human image selected - fail
                 const verifying = document.getElementById('behuman-captcha-verifying');
                 if (verifying) verifying.classList.remove('active');
                 document.getElementById('behuman-captcha-screen').style.display = 'none';
@@ -1201,15 +1215,19 @@
                 this.preloadedCaptchaData = null;
                 this.captchaSelectedImages = [];
                 this.captchaCorrectImages = [];
+                this.captchaNonPeopleImages = [];
                 this.captchaNonHumanImages = [];
                 return;
             }
             
-            // Check if all correct images (with people) are selected
-            const selectedCorrect = this.captchaCorrectImages.every(idx => this.captchaSelectedImages.includes(idx));
+            // Check if ALL correct images (with people) are selected
+            const allPeopleSelected = this.captchaCorrectImages.length > 0 && this.captchaCorrectImages.every(idx => this.captchaSelectedImages.includes(idx));
             
-            if (selectedCorrect && this.captchaCorrectImages.length > 0) {
-                // All images with people are selected - verified
+            // Check if ONLY people images are selected (no extra images)
+            const onlyPeopleSelected = this.captchaSelectedImages.length === this.captchaCorrectImages.length;
+            
+            if (allPeopleSelected && onlyPeopleSelected) {
+                // ALL people images are selected AND no other images are selected - verified
                 // Verifying state should already be showing from submitCaptcha()
                 const verifying = document.getElementById('behuman-captcha-verifying');
                 
@@ -1222,7 +1240,7 @@
                     self.showResult(true);
                 }, delay);
             } else {
-                // Submit button clicked but not all correct images selected
+                // Submit button clicked but not all correct images selected, or extra images selected
                 const verifying = document.getElementById('behuman-captcha-verifying');
                 if (verifying) verifying.classList.remove('active');
                 document.getElementById('behuman-captcha-screen').style.display = 'none';
@@ -1231,6 +1249,7 @@
                 this.preloadedCaptchaData = null;
                 this.captchaSelectedImages = [];
                 this.captchaCorrectImages = [];
+                this.captchaNonPeopleImages = [];
                 this.captchaNonHumanImages = [];
             }
         },
@@ -1240,6 +1259,7 @@
             this.preloadedCaptchaData = null;
             this.captchaSelectedImages = [];
             this.captchaCorrectImages = [];
+            this.captchaNonPeopleImages = [];
             this.captchaNonHumanImages = [];
             const self = this;
             this.preloadCaptchaImages().then(() => {

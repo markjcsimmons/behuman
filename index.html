@@ -705,6 +705,7 @@
             preloadedCaptchaData = null;
             captchaSelectedImages = [];
             captchaCorrectImages = [];
+            captchaNonPeopleImages = [];
             captchaNonHumanImages = [];
             isCaptchaFailure = false;
             
@@ -733,8 +734,9 @@
 
         // CAPTCHA functions
         let captchaSelectedImages = [];
-        let captchaCorrectImages = []; // Indices of images that contain humans
-        let captchaNonHumanImages = []; // Indices of explicitly non-human images
+        let captchaCorrectImages = []; // Indices of images that contain humans (must ALL be selected)
+        let captchaNonPeopleImages = []; // Indices of non-people images from captcha-images/nonpeople_*.jpg (must NONE be selected)
+        let captchaNonHumanImages = []; // Indices of explicitly non-human images from nonhumans folder (must NONE be selected)
         let preloadedCaptchaData = null; // Store preloaded image data
         let detectionModel = null; // TensorFlow.js COCO-SSD model
         let isCaptchaFailure = false; // Track if failure is from CAPTCHA
@@ -820,9 +822,21 @@
         
         // Preload CAPTCHA images from local folder (much faster - no API calls or detection needed)
         async function preloadCaptchaImages() {
-            if (preloadedCaptchaData) {
-                return; // Already preloading or preloaded
+            if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
+                return; // Already preloaded
             }
+            
+            // If already loading, wait for it to complete
+            if (preloadedCaptchaData && !preloadedCaptchaData.loaded) {
+                // Wait for existing load to complete
+                while (!preloadedCaptchaData.loaded && preloadedCaptchaData !== null) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                return;
+            }
+            
+            // Set preloadedCaptchaData to a loading object to prevent concurrent loads
+            preloadedCaptchaData = { loaded: false };
             
             try {
                 // Generate arrays of local image paths
@@ -865,12 +879,15 @@
                 
                 await Promise.all(imagePromises);
                 
-                // Track which indices have people and non-human images
+                // Track which indices have people, non-people, and non-human images
                 const correctImages = [];
+                const nonPeopleIndices = [];
                 const nonHumanIndices = [];
                 allImages.forEach((url, index) => {
                     if (shuffledPeople.includes(url)) {
                         correctImages.push(index);
+                    } else if (shuffledNonPeople.includes(url)) {
+                        nonPeopleIndices.push(index);
                     } else if (url === randomNonHumanImage) {
                         nonHumanIndices.push(index);
                     }
@@ -880,6 +897,7 @@
                 preloadedCaptchaData = {
                     images: allImages,
                     correctImages: correctImages,
+                    nonPeopleIndices: nonPeopleIndices,
                     nonHumanIndices: nonHumanIndices,
                     loaded: true
                 };
@@ -898,6 +916,7 @@
             // If we have preloaded data and it's loaded, use it
             if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
                 captchaCorrectImages = preloadedCaptchaData.correctImages;
+                captchaNonPeopleImages = preloadedCaptchaData.nonPeopleIndices || [];
                 captchaNonHumanImages = preloadedCaptchaData.nonHumanIndices || [];
                 const allImages = preloadedCaptchaData.images;
                 
@@ -968,12 +987,15 @@
                 // Combine and shuffle all images
                 const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
                 
-                // Track which indices have people and non-human images
+                // Track which indices have people, non-people, and non-human images
                 captchaCorrectImages = [];
+                captchaNonPeopleImages = [];
                 captchaNonHumanImages = [];
                 allImages.forEach((url, index) => {
                     if (shuffledPeople.includes(url)) {
                         captchaCorrectImages.push(index);
+                    } else if (shuffledNonPeople.includes(url)) {
+                        captchaNonPeopleImages.push(index);
                     } else if (url === randomNonHumanImage) {
                         captchaNonHumanImages.push(index);
                     }
@@ -1042,26 +1064,33 @@
         }
 
         function verifyCaptcha() {
-            // Check if any non-human images are selected - if so, fail immediately
+            // Check if any non-people images (from captcha-images/nonpeople_*.jpg) are selected - if so, fail immediately
+            const selectedNonPeople = captchaNonPeopleImages.some(idx => captchaSelectedImages.includes(idx));
+            
+            // Check if any non-human images (from nonhumans folder) are selected - if so, fail immediately
             const selectedNonHuman = captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
             
-            if (selectedNonHuman) {
-                // Non-human image selected - fail
+            if (selectedNonPeople || selectedNonHuman) {
+                // Non-people or non-human image selected - fail
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(false, true); // Mark as CAPTCHA failure
                 // Clear preloaded data - new images will load when user tries again from home
                 preloadedCaptchaData = null;
                 captchaSelectedImages = [];
                 captchaCorrectImages = [];
+                captchaNonPeopleImages = [];
                 captchaNonHumanImages = [];
                 return;
             }
             
-            // Check if all correct images (with people) are selected
-            const selectedCorrect = captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
+            // Check if ALL correct images (with people) are selected
+            const allPeopleSelected = captchaCorrectImages.length > 0 && captchaCorrectImages.every(idx => captchaSelectedImages.includes(idx));
             
-            if (selectedCorrect && captchaCorrectImages.length > 0) {
-                // All images with people are selected - verified
+            // Check if ONLY people images are selected (no extra images)
+            const onlyPeopleSelected = captchaSelectedImages.length === captchaCorrectImages.length;
+            
+            if (allPeopleSelected && onlyPeopleSelected) {
+                // ALL people images are selected AND no other images are selected - verified
                 // Verifying state should already be showing from submitCaptcha()
                 const verifying = document.getElementById('captcha-verifying');
                 
@@ -1073,7 +1102,7 @@
                     showResult(true);
                 }, delay);
             } else {
-                // Submit button clicked but not all correct images selected
+                // Submit button clicked but not all correct images selected, or extra images selected
                 const verifying = document.getElementById('captcha-verifying');
                 if (verifying) verifying.classList.remove('active');
                 document.getElementById('captcha-screen').style.display = 'none';
@@ -1082,6 +1111,7 @@
                 preloadedCaptchaData = null;
                 captchaSelectedImages = [];
                 captchaCorrectImages = [];
+                captchaNonPeopleImages = [];
                 captchaNonHumanImages = [];
             }
         }
@@ -1091,6 +1121,7 @@
             preloadedCaptchaData = null;
             captchaSelectedImages = [];
             captchaCorrectImages = [];
+            captchaNonPeopleImages = [];
             captchaNonHumanImages = [];
             // Trigger new preload - this is the only exception to the rule (refresh button)
             preloadCaptchaImages().then(() => {
