@@ -634,13 +634,15 @@
                 document.getElementById('captcha-screen').style.display = 'block';
                 loadCaptchaImages();
                 
-                // Preload fresh images in background for potential retry (after a delay)
+                // Preload fresh images in background for potential retry (after a longer delay)
                 // This allows loadCaptchaImages to finish using current preloaded data first
                 setTimeout(() => {
-                    const currentPreloadedData = preloadedCaptchaData;
-                    preloadedCaptchaData = null;
-                    preloadCaptchaImages();
-                }, 100);
+                    // Only clear and reload if preloaded data still exists (wasn't already used/cleared)
+                    if (preloadedCaptchaData) {
+                        preloadedCaptchaData = null;
+                        preloadCaptchaImages();
+                    }
+                }, 1000);
             } else {
                 // Show robot screen
                 showResult(false);
