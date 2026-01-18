@@ -1064,14 +1064,25 @@
         }
 
         function verifyCaptcha() {
+            // Debug logging
+            console.log('Verifying CAPTCHA:');
+            console.log('  captchaSelectedImages:', captchaSelectedImages);
+            console.log('  captchaCorrectImages (people):', captchaCorrectImages);
+            console.log('  captchaNonPeopleImages:', captchaNonPeopleImages);
+            console.log('  captchaNonHumanImages:', captchaNonHumanImages);
+            
             // Check if any non-people images (from captcha-images/nonpeople_*.jpg) are selected - if so, fail immediately
             const selectedNonPeople = captchaNonPeopleImages.some(idx => captchaSelectedImages.includes(idx));
             
             // Check if any non-human images (from nonhumans folder) are selected - if so, fail immediately
             const selectedNonHuman = captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
             
+            console.log('  selectedNonPeople:', selectedNonPeople);
+            console.log('  selectedNonHuman:', selectedNonHuman);
+            
             if (selectedNonPeople || selectedNonHuman) {
                 // Non-people or non-human image selected - fail
+                console.log('  FAIL: Non-people or non-human image selected');
                 document.getElementById('captcha-screen').style.display = 'none';
                 showResult(false, true); // Mark as CAPTCHA failure
                 // Clear preloaded data - new images will load when user tries again from home
@@ -1088,6 +1099,9 @@
             
             // Check if ONLY people images are selected (no extra images)
             const onlyPeopleSelected = captchaSelectedImages.length === captchaCorrectImages.length;
+            
+            console.log('  allPeopleSelected:', allPeopleSelected, '(need all of', captchaCorrectImages.length, 'people images)');
+            console.log('  onlyPeopleSelected:', onlyPeopleSelected, '(selected:', captchaSelectedImages.length, 'vs correct:', captchaCorrectImages.length, ')');
             
             if (allPeopleSelected && onlyPeopleSelected) {
                 // ALL people images are selected AND no other images are selected - verified
