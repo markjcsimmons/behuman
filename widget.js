@@ -1066,8 +1066,11 @@
                     img.alt = 'CAPTCHA image ' + (index + 1);
                     img.loading = 'lazy';
                     img.onerror = function() {
-                        // If image fails to load, show placeholder
-                        this.src = 'https://via.placeholder.com/200x200/cccccc/666666?text=Image';
+                        // If image fails to load, use a simple data URI placeholder (no network request)
+                        // This prevents cascading errors if the placeholder service is also unavailable
+                        this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23cccccc"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666666" font-family="sans-serif" font-size="14"%3EImage%3C/text%3E%3C/svg%3E';
+                        // Prevent infinite loop by removing error handler after setting data URI
+                        this.onerror = null;
                     };
                     
                     container.appendChild(img);
@@ -1152,8 +1155,11 @@
                     img.alt = 'CAPTCHA image ' + (index + 1);
                     img.loading = 'lazy';
                     img.onerror = function() {
-                        // If image fails to load, show placeholder
-                        this.src = 'https://via.placeholder.com/200x200/cccccc/666666?text=Image';
+                        // If image fails to load, use a simple data URI placeholder (no network request)
+                        // This prevents cascading errors if the placeholder service is also unavailable
+                        this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23cccccc"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666666" font-family="sans-serif" font-size="14"%3EImage%3C/text%3E%3C/svg%3E';
+                        // Prevent infinite loop by removing error handler after setting data URI
+                        this.onerror = null;
                     };
                     
                     container.appendChild(img);
