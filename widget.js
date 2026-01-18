@@ -884,15 +884,21 @@
         
         // Non-human images from local folder
         nonHumanImages: [
+            'nonhumans/20231219T1430-TEXAS-IMMIGRATION-LAW-SIGNED-1770193.jpeg',
+            'nonhumans/2024-07-29T194909Z_231367069_RC2659A7OB4L_RTRMADP_3_VENEZUELA-ELECTION-1722316928.webp',
             'nonhumans/2025-10-17T182150Z_1743657662_RC23TGANHF4A_RTRMADP_3_BRITAIN-ROYALS-ANDREW-1024x707.jpg',
             'nonhumans/2025-11-12T133552Z_423281103_RC2FKHA3DYS8_RTRMADP_3_USA-MIGRATION-SURVEILLANCE-1024x683.jpg',
             'nonhumans/251006-bezos-1260x928.jpg',
+            'nonhumans/4OW92TB_copyright_image_68861.webp',
             'nonhumans/8d0e7a2d869642d79c1badf576bbaf55_18.webp',
+            'nonhumans/bashar-assad-syria-laugh.avif',
             'nonhumans/cd148806-da24-4d0d-8b0a-e0bba6cfe0b0_5ee50f3e.webp',
+            'nonhumans/download.jpeg',
             'nonhumans/GettyImages-522605040.webp',
+            'nonhumans/IranUprising-2-1024x683.jpg',
             'nonhumans/jeffrey-epstein-same-name.webp',
+            'nonhumans/khameinei-iran-GettyImages-2231012144.webp',
             'nonhumans/stephen-miller-gunning-for-kristi-noem-as-her-star-fades-at-the-white-house-report.webp',
-            'nonhumans/t-dennis-kozlowski-tyco-1.webp',
             'nonhumans/trump-17650.jpg',
             'nonhumans/virus_outbreak_belarus_20328_c0-247-3426-2244_s885x516.webp'
         ],
