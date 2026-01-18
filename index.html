@@ -914,6 +914,14 @@
                     }
                 });
                 
+                // Debug logging
+                console.log('CAPTCHA Image Selection:');
+                console.log('  People images (should be 3):', correctImages.length, correctImages);
+                console.log('  Non-people images (should be 5):', nonPeopleIndices.length, nonPeopleIndices);
+                console.log('  Nonhuman images (should be 1):', nonHumanIndices.length, nonHumanIndices);
+                console.log('  Total images:', allImages.length);
+                console.log('  Selected nonhuman image:', randomNonHumanImage);
+                
                 // Store preloaded data
                 preloadedCaptchaData = {
                     images: allImages,
@@ -1024,6 +1032,14 @@
                         captchaNonHumanImages.push(index);
                     }
                 });
+                
+                // Debug logging
+                console.log('CAPTCHA Image Selection (async):');
+                console.log('  People images (should be 3):', captchaCorrectImages.length, captchaCorrectImages);
+                console.log('  Non-people images (should be 5):', captchaNonPeopleImages.length, captchaNonPeopleImages);
+                console.log('  Nonhuman images (should be 1):', captchaNonHumanImages.length, captchaNonHumanImages);
+                console.log('  Total images:', allImages.length);
+                console.log('  Selected nonhuman image:', randomNonHumanImage);
                 
                 // Clear loading state
                 grid.innerHTML = '';
