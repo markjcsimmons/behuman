@@ -17,7 +17,10 @@
   <path d="M 570 220 L 590 240 L 630 200" stroke="white" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   
   <!-- Text -->
-  <text x="600" y="380" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="500" fill="#333" text-anchor="middle">Verified Human Are You?</text>
+  <text x="600" y="360" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="500" fill="#333" text-anchor="middle">Verified Human. Are you?</text>
+  
+  <!-- Website URL -->
+  <text x="600" y="410" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="400" fill="#4285f4" text-anchor="middle">letusbehuman.com</text>
   
   <!-- Shadow -->
   <rect x="200" y="115" width="800" height="400" rx="20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
