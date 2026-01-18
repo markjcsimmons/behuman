@@ -678,6 +678,10 @@
             if (widgetInstructions) {
                 widgetInstructions.style.display = 'none';
             }
+            
+            // Start preloading images immediately when returning to home
+            // This ensures images are ready faster if user goes through flow again
+            this.preloadCaptchaImages();
         },
         
         // Show statements screen
