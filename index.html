@@ -1335,14 +1335,36 @@
             console.log('  captchaNonPeopleImages:', captchaNonPeopleImages);
             console.log('  captchaNonHumanImages:', captchaNonHumanImages);
             
+            // Detailed logging: show which selected indices match which category
+            if (preloadedCaptchaData && preloadedCaptchaData.images) {
+                console.log('  Image URLs at each index:');
+                preloadedCaptchaData.images.forEach((url, idx) => {
+                    let category = 'UNKNOWN';
+                    if (captchaCorrectImages.includes(idx)) category = 'PEOPLE';
+                    else if (captchaNonPeopleImages.includes(idx)) category = 'NON-PEOPLE';
+                    else if (captchaNonHumanImages.includes(idx)) category = 'NONHUMAN';
+                    const selected = captchaSelectedImages.includes(idx) ? ' [SELECTED]' : '';
+                    console.log(`    [${idx}] ${category}: ${url}${selected}`);
+                });
+            }
+            
+            // Check which specific non-people indices are selected
+            const selectedNonPeopleIndices = captchaNonPeopleImages.filter(idx => captchaSelectedImages.includes(idx));
+            const selectedNonHumanIndices = captchaNonHumanImages.filter(idx => captchaSelectedImages.includes(idx));
+            const selectedPeopleIndices = captchaCorrectImages.filter(idx => captchaSelectedImages.includes(idx));
+            
+            console.log('  Selected people indices:', selectedPeopleIndices);
+            console.log('  Selected non-people indices:', selectedNonPeopleIndices);
+            console.log('  Selected non-human indices:', selectedNonHumanIndices);
+            
             // Check if any non-people images (from captcha-images/nonpeople_*.jpg) are selected - if so, fail immediately
-            const selectedNonPeople = captchaNonPeopleImages.some(idx => captchaSelectedImages.includes(idx));
+            const selectedNonPeople = selectedNonPeopleIndices.length > 0;
             
             // Check if any non-human images (from nonhumans folder) are selected - if so, fail immediately
-            const selectedNonHuman = captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
+            const selectedNonHuman = selectedNonHumanIndices.length > 0;
             
-            console.log('  selectedNonPeople:', selectedNonPeople);
-            console.log('  selectedNonHuman:', selectedNonHuman);
+            console.log('  selectedNonPeople:', selectedNonPeople, '(indices:', selectedNonPeopleIndices, ')');
+            console.log('  selectedNonHuman:', selectedNonHuman, '(indices:', selectedNonHumanIndices, ')');
             
             if (selectedNonPeople || selectedNonHuman) {
                 // Non-people or non-human image selected - fail
