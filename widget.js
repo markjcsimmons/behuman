@@ -1041,14 +1041,20 @@
                     throw new Error('Not enough non-human images (need at least 1, have ' + this.nonHumanImages.length + ')');
                 }
                 
-                // Select exactly 3 people images, 5 non-people images, and 1 non-human image
+                // Select exactly 3 images from people folder, 5 from non-people folder, and 1 from nonhumans folder
                 const numPeopleImages = 3;
                 const numNonPeopleImages = 5;
                 
-                // Shuffle and select random images
+                console.log(`Selecting ${numPeopleImages} from people folder, ${numNonPeopleImages} from non-people folder, 1 from nonhumans folder`);
+                
+                // Shuffle and select random images from each folder
                 const shuffledPeople = [...PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
                 const shuffledNonPeople = [...NON_PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
+                
+                console.log(`Selected ${shuffledPeople.length} people images:`, shuffledPeople.map(p => p.split('/').pop()));
+                console.log(`Selected ${shuffledNonPeople.length} non-people images:`, shuffledNonPeople.map(p => p.split('/').pop()));
+                console.log(`Selected 1 non-human image:`, randomNonHumanImage.split('/').pop());
                 
                 // Combine all images (3 people + 5 non-people + 1 non-human = 9 total)
                 const selectedImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage];
