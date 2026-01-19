@@ -854,12 +854,18 @@
                     nonPeopleTestImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
-                // Non-human images: check for nonhuman_*.jpg and nonhuman_*.jpeg in captcha-images
+                // Non-human images: check for all images in nonhumans folder
                 const nonHumanTestImages = [];
-                for (let i = 1; i <= 50; i++) {
-                    nonHumanTestImages.push(`captcha-images/nonhuman_${i}.jpg`);
-                    nonHumanTestImages.push(`captcha-images/nonhuman_${i}.jpeg`);
+                // Try common image extensions and a wide range of numbers
+                for (let i = 1; i <= 100; i++) {
+                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpg`);
+                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpeg`);
+                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.png`);
+                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.webp`);
                 }
+                // Also try files without numbers (just in case)
+                const commonNames = ['nonhuman.jpg', 'nonhuman.jpeg', 'nonhuman.png', 'nonhuman.webp'];
+                commonNames.forEach(name => nonHumanTestImages.push(`nonhumans/${name}`));
                 
                 // Preload all test images to determine which actually exist
                 const testImagePromises = [...peopleTestImages, ...nonPeopleTestImages, ...nonHumanTestImages].map(url => {
@@ -883,7 +889,7 @@
                     .map(r => r.url);
                 
                 const nonHumanImages = testResults
-                    .filter(r => r.success && r.url.startsWith('captcha-images/nonhuman_'))
+                    .filter(r => r.success && r.url.startsWith('nonhumans/'))
                     .map(r => r.url);
                 
                 // Debug: Log what we found
@@ -896,7 +902,7 @@
                 } else {
                     console.warn('  WARNING: No nonhuman images found!');
                     // Debug: Check what test results we got for nonhuman images
-                    const nonHumanTestResults = testResults.filter(r => r.url.startsWith('captcha-images/nonhuman_'));
+                    const nonHumanTestResults = testResults.filter(r => r.url.startsWith('nonhumans/'));
                     console.log('  Nonhuman test attempts:', nonHumanTestResults.length);
                     console.log('  Successful nonhuman loads:', nonHumanTestResults.filter(r => r.success).length);
                     console.log('  Failed nonhuman loads:', nonHumanTestResults.filter(r => !r.success).length);
@@ -1158,7 +1164,7 @@
                     .map(r => r.url);
                 
                 const validNonHumanImages = testResults
-                    .filter(r => r.success && r.url.startsWith('captcha-images/nonhuman_'))
+                    .filter(r => r.success && r.url.startsWith('nonhumans/'))
                     .map(r => r.url);
                 
                 // Select exactly 3 images with people
