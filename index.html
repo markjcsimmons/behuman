@@ -1019,13 +1019,14 @@
                     console.error('CRITICAL ERROR: randomNonHumanImage is null!');
                 }
                 
-                // Track which indices have people, non-people, and non-human images in the final shuffled array
+                // IMPORTANT: Track indices AFTER final array is set (after any re-shuffling)
+                // This ensures indices match the actual displayed array
                 const correctImages = [];
                 const nonPeopleIndices = [];
                 const nonHumanIndices = [];
                 shuffledFinalImages.forEach((url, index) => {
                     // Check if it's a nonhuman image FIRST (most specific check)
-                    if (url === randomNonHumanImage || url.includes('nonhuman_')) {
+                    if (url === randomNonHumanImage || url.includes('nonhumans/')) {
                         nonHumanIndices.push(index);
                         console.log('  Found nonhuman image at index', index, ':', url);
                     } else if (shuffledPeople.includes(url)) {
