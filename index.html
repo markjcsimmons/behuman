@@ -1100,7 +1100,21 @@
                 
                 // Create image containers - images are already loaded, so they'll display immediately
                 console.log('Rendering CAPTCHA grid with', allImages.length, 'images');
+                console.log('  People image indices:', captchaCorrectImages);
+                console.log('  Non-people image indices:', captchaNonPeopleImages);
+                console.log('  Nonhuman image indices:', captchaNonHumanImages);
                 allImages.forEach((url, index) => {
+                    // Debug: Log what type each image is at each index
+                    let imageType = 'UNKNOWN';
+                    if (captchaCorrectImages.includes(index)) {
+                        imageType = 'PEOPLE';
+                    } else if (captchaNonPeopleImages.includes(index)) {
+                        imageType = 'NON-PEOPLE';
+                    } else if (captchaNonHumanImages.includes(index)) {
+                        imageType = 'NONHUMAN';
+                    }
+                    console.log(`  Rendering [${index}] ${imageType}:`, url);
+                    
                     const container = document.createElement('div');
                     container.className = 'captcha-image-container';
                     container.dataset.index = index;
@@ -1111,11 +1125,6 @@
                     const img = document.createElement('img');
                     img.src = url;
                     img.alt = 'CAPTCHA image ' + (index + 1);
-                    
-                    // Debug: Log if this is the nonhuman image
-                    if (url.includes('nonhuman_')) {
-                        console.log('Rendering nonhuman image at index', index, ':', url);
-                    }
                     
                     img.onerror = function() {
                         console.error('Image failed to load in display:', url);
