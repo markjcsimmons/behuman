@@ -860,51 +860,75 @@
             preloadedCaptchaData = { loaded: false };
             
             try {
-                // Generate arrays of local image paths
-                const peopleImages = [];
-                const nonPeopleImages = [];
-                
-                // We have 45 people images (people_1.jpg to people_45.jpg)
-                for (let i = 1; i <= 45; i++) {
-                    peopleImages.push(`captcha-images/people_${i}.jpg`);
+                // Build arrays by testing which files actually exist via preloading
+                // People images: check 1-50 (actual: 44 files exist)
+                const peopleTestImages = [];
+                for (let i = 1; i <= 50; i++) {
+                    peopleTestImages.push(`captcha-images/people_${i}.jpg`);
                 }
                 
-                // We have 155 non-people images (nonpeople_1.jpg to nonpeople_155.jpg)
-                for (let i = 1; i <= 155; i++) {
-                    nonPeopleImages.push(`captcha-images/nonpeople_${i}.jpg`);
+                // Non-people images: check 1-200 (actual: 129 files exist)
+                const nonPeopleTestImages = [];
+                for (let i = 1; i <= 200; i++) {
+                    nonPeopleTestImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
-                // Select exactly 3 images with people
-                const numPeopleImages = 3; // 3 people images
-                const numNonPeopleImages = 8 - numPeopleImages; // 4-5 non-people images
-                
-                // Shuffle and select random images
-                const shuffledPeople = [...peopleImages].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
-                const shuffledNonPeople = [...nonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
-                
-                // Add one random non-human image
-                const randomNonHumanImage = NON_HUMAN_IMAGES[Math.floor(Math.random() * NON_HUMAN_IMAGES.length)];
-                
-                // Combine all images
-                const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
-                
-                // Preload all images into browser cache
-                const imagePromises = allImages.map(url => {
+                // Preload all test images to determine which actually exist
+                const testImagePromises = [...peopleTestImages, ...nonPeopleTestImages].map(url => {
                     return new Promise((resolve) => {
                         const img = new Image();
-                        img.onload = () => resolve({ url, img });
-                        img.onerror = () => resolve({ url, img: null });
+                        img.onload = () => resolve({ url, success: true });
+                        img.onerror = () => resolve({ url, success: false });
                         img.src = url;
                     });
                 });
                 
-                await Promise.all(imagePromises);
+                const testResults = await Promise.all(testImagePromises);
                 
-                // Track which indices have people, non-people, and non-human images
+                // Build arrays of only existing files
+                const peopleImages = testResults
+                    .filter(r => r.success && r.url.startsWith('captcha-images/people_'))
+                    .map(r => r.url);
+                
+                const nonPeopleImages = testResults
+                    .filter(r => r.success && r.url.startsWith('captcha-images/nonpeople_'))
+                    .map(r => r.url);
+                
+                // Select exactly 3 images with people
+                const numPeopleImages = 3; // 3 people images
+                const numNonPeopleImages = 8 - numPeopleImages; // 5 non-people images
+                
+                // Shuffle and select random images from only existing files
+                const shuffledPeople = [...peopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numPeopleImages, peopleImages.length));
+                const shuffledNonPeople = [...nonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numNonPeopleImages, nonPeopleImages.length));
+                
+                // Add one random non-human image
+                const randomNonHumanImage = NON_HUMAN_IMAGES[Math.floor(Math.random() * NON_HUMAN_IMAGES.length)];
+                
+                // Combine all images (all should exist now)
+                const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                
+                // Preload the selected images (they should all load successfully now)
+                const imagePromises = allImages.map(url => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => resolve({ url, img, success: true });
+                        img.onerror = () => resolve({ url, img: null, success: false });
+                        img.src = url;
+                    });
+                });
+                
+                const results = await Promise.all(imagePromises);
+                
+                // Filter out any failed loads (shouldn't happen, but be safe)
+                const validResults = results.filter(r => r.success && r.img !== null);
+                const shuffledFinalImages = validResults.map(r => r.url);
+                
+                // Track which indices have people, non-people, and non-human images in the final shuffled array
                 const correctImages = [];
                 const nonPeopleIndices = [];
                 const nonHumanIndices = [];
-                allImages.forEach((url, index) => {
+                shuffledFinalImages.forEach((url, index) => {
                     if (shuffledPeople.includes(url)) {
                         correctImages.push(index);
                     } else if (shuffledNonPeople.includes(url)) {
@@ -915,16 +939,16 @@
                 });
                 
                 // Debug logging
-                console.log('CAPTCHA Image Selection:');
+                console.log('CAPTCHA Image Selection (filtered):');
                 console.log('  People images (should be 3):', correctImages.length, correctImages);
                 console.log('  Non-people images (should be 5):', nonPeopleIndices.length, nonPeopleIndices);
                 console.log('  Nonhuman images (should be 1):', nonHumanIndices.length, nonHumanIndices);
-                console.log('  Total images:', allImages.length);
+                console.log('  Total images:', shuffledFinalImages.length);
                 console.log('  Selected nonhuman image:', randomNonHumanImage);
                 
-                // Store preloaded data
+                // Store preloaded data with only valid images
                 preloadedCaptchaData = {
-                    images: allImages,
+                    images: shuffledFinalImages,
                     correctImages: correctImages,
                     nonPeopleIndices: nonPeopleIndices,
                     nonHumanIndices: nonHumanIndices,
@@ -991,17 +1015,18 @@
             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             
             try {
-                // Generate arrays of local image paths
+                // Generate arrays of local image paths based on actual files
+                // Build list dynamically by attempting to load files and filtering successful loads
                 const peopleImages = [];
                 const nonPeopleImages = [];
                 
-                // We have 45 people images (people_1.jpg to people_45.jpg)
-                for (let i = 1; i <= 45; i++) {
+                // People images: try 1-50 and let error handling filter out missing ones
+                for (let i = 1; i <= 50; i++) {
                     peopleImages.push(`captcha-images/people_${i}.jpg`);
                 }
                 
-                // We have 155 non-people images (nonpeople_1.jpg to nonpeople_155.jpg)
-                for (let i = 1; i <= 155; i++) {
+                // Non-people images: try 1-200 and let error handling filter out missing ones
+                for (let i = 1; i <= 200; i++) {
                     nonPeopleImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
