@@ -966,63 +966,201 @@
             }
             
             try {
-                // Generate arrays of local image paths
-                const peopleImages = [];
-                const nonPeopleImages = [];
+                // Static lists of actual files that exist (no dynamic testing needed)
+                const PEOPLE_IMAGES = [
+                    'captcha-images/people_1.jpg', 'captcha-images/people_2.jpg', 'captcha-images/people_3.jpg',
+                    'captcha-images/people_4.jpg', 'captcha-images/people_5.jpg', 'captcha-images/people_6.jpg',
+                    'captcha-images/people_7.jpg', 'captcha-images/people_8.jpg', 'captcha-images/people_9.jpg',
+                    'captcha-images/people_10.jpg', 'captcha-images/people_11.jpg', 'captcha-images/people_12.jpg',
+                    'captcha-images/people_13.jpg', 'captcha-images/people_14.jpg', 'captcha-images/people_15.jpg',
+                    'captcha-images/people_16.jpg', 'captcha-images/people_17.jpg', 'captcha-images/people_18.jpg',
+                    'captcha-images/people_19.jpg', 'captcha-images/people_20.jpg', 'captcha-images/people_21.jpg',
+                    'captcha-images/people_22.jpg', 'captcha-images/people_23.jpg', 'captcha-images/people_25.jpg',
+                    'captcha-images/people_26.jpg', 'captcha-images/people_27.jpg', 'captcha-images/people_28.jpg',
+                    'captcha-images/people_29.jpg', 'captcha-images/people_31.jpg', 'captcha-images/people_32.jpg',
+                    'captcha-images/people_33.jpg', 'captcha-images/people_34.jpg', 'captcha-images/people_35.jpg',
+                    'captcha-images/people_36.jpg', 'captcha-images/people_37.jpg', 'captcha-images/people_38.jpg',
+                    'captcha-images/people_39.jpg', 'captcha-images/people_40.jpg', 'captcha-images/people_41.jpg',
+                    'captcha-images/people_42.jpg', 'captcha-images/people_43.jpg', 'captcha-images/people_44.jpg',
+                    'captcha-images/people_45.jpg'
+                ];
                 
-                // People images: check 1-45 (actual: 43 files exist, max number is 45)
-                for (let i = 1; i <= 45; i++) {
-                    peopleImages.push(`captcha-images/people_${i}.jpg`);
+                const NON_PEOPLE_IMAGES = [
+                    'captcha-images/nonpeople_1.jpg', 'captcha-images/nonpeople_2.jpg', 'captcha-images/nonpeople_3.jpg',
+                    'captcha-images/nonpeople_4.jpg', 'captcha-images/nonpeople_5.jpg', 'captcha-images/nonpeople_6.jpg',
+                    'captcha-images/nonpeople_7.jpg', 'captcha-images/nonpeople_11.jpg', 'captcha-images/nonpeople_12.jpg',
+                    'captcha-images/nonpeople_14.jpg', 'captcha-images/nonpeople_15.jpg', 'captcha-images/nonpeople_16.jpg',
+                    'captcha-images/nonpeople_17.jpg', 'captcha-images/nonpeople_18.jpg', 'captcha-images/nonpeople_19.jpg',
+                    'captcha-images/nonpeople_20.jpg', 'captcha-images/nonpeople_21.jpg', 'captcha-images/nonpeople_22.jpg',
+                    'captcha-images/nonpeople_23.jpg', 'captcha-images/nonpeople_24.jpg', 'captcha-images/nonpeople_25.jpg',
+                    'captcha-images/nonpeople_27.jpg', 'captcha-images/nonpeople_28.jpg', 'captcha-images/nonpeople_29.jpg',
+                    'captcha-images/nonpeople_30.jpg', 'captcha-images/nonpeople_31.jpg', 'captcha-images/nonpeople_32.jpg',
+                    'captcha-images/nonpeople_33.jpg', 'captcha-images/nonpeople_34.jpg', 'captcha-images/nonpeople_35.jpg',
+                    'captcha-images/nonpeople_36.jpg', 'captcha-images/nonpeople_37.jpg', 'captcha-images/nonpeople_38.jpg',
+                    'captcha-images/nonpeople_40.jpg', 'captcha-images/nonpeople_41.jpg', 'captcha-images/nonpeople_43.jpg',
+                    'captcha-images/nonpeople_44.jpg', 'captcha-images/nonpeople_45.jpg', 'captcha-images/nonpeople_46.jpg',
+                    'captcha-images/nonpeople_47.jpg', 'captcha-images/nonpeople_49.jpg', 'captcha-images/nonpeople_53.jpg',
+                    'captcha-images/nonpeople_55.jpg', 'captcha-images/nonpeople_56.jpg', 'captcha-images/nonpeople_57.jpg',
+                    'captcha-images/nonpeople_59.jpg', 'captcha-images/nonpeople_60.jpg', 'captcha-images/nonpeople_61.jpg',
+                    'captcha-images/nonpeople_62.jpg', 'captcha-images/nonpeople_63.jpg', 'captcha-images/nonpeople_64.jpg',
+                    'captcha-images/nonpeople_66.jpg', 'captcha-images/nonpeople_67.jpg', 'captcha-images/nonpeople_68.jpg',
+                    'captcha-images/nonpeople_69.jpg', 'captcha-images/nonpeople_71.jpg', 'captcha-images/nonpeople_72.jpg',
+                    'captcha-images/nonpeople_73.jpg', 'captcha-images/nonpeople_74.jpg', 'captcha-images/nonpeople_77.jpg',
+                    'captcha-images/nonpeople_78.jpg', 'captcha-images/nonpeople_79.jpg', 'captcha-images/nonpeople_80.jpg',
+                    'captcha-images/nonpeople_81.jpg', 'captcha-images/nonpeople_82.jpg', 'captcha-images/nonpeople_83.jpg',
+                    'captcha-images/nonpeople_84.jpg', 'captcha-images/nonpeople_85.jpg', 'captcha-images/nonpeople_86.jpg',
+                    'captcha-images/nonpeople_88.jpg', 'captcha-images/nonpeople_90.jpg', 'captcha-images/nonpeople_91.jpg',
+                    'captcha-images/nonpeople_92.jpg', 'captcha-images/nonpeople_93.jpg', 'captcha-images/nonpeople_95.jpg',
+                    'captcha-images/nonpeople_96.jpg', 'captcha-images/nonpeople_98.jpg', 'captcha-images/nonpeople_99.jpg',
+                    'captcha-images/nonpeople_100.jpg', 'captcha-images/nonpeople_103.jpg', 'captcha-images/nonpeople_104.jpg',
+                    'captcha-images/nonpeople_105.jpg', 'captcha-images/nonpeople_106.jpg', 'captcha-images/nonpeople_108.jpg',
+                    'captcha-images/nonpeople_109.jpg', 'captcha-images/nonpeople_110.jpg', 'captcha-images/nonpeople_111.jpg',
+                    'captcha-images/nonpeople_112.jpg', 'captcha-images/nonpeople_113.jpg', 'captcha-images/nonpeople_115.jpg',
+                    'captcha-images/nonpeople_116.jpg', 'captcha-images/nonpeople_117.jpg', 'captcha-images/nonpeople_118.jpg',
+                    'captcha-images/nonpeople_120.jpg', 'captcha-images/nonpeople_121.jpg', 'captcha-images/nonpeople_124.jpg',
+                    'captcha-images/nonpeople_125.jpg', 'captcha-images/nonpeople_126.jpg', 'captcha-images/nonpeople_127.jpg',
+                    'captcha-images/nonpeople_129.jpg', 'captcha-images/nonpeople_130.jpg', 'captcha-images/nonpeople_131.jpg',
+                    'captcha-images/nonpeople_132.jpg', 'captcha-images/nonpeople_133.jpg', 'captcha-images/nonpeople_134.jpg',
+                    'captcha-images/nonpeople_135.jpg', 'captcha-images/nonpeople_136.jpg', 'captcha-images/nonpeople_137.jpg',
+                    'captcha-images/nonpeople_138.jpg', 'captcha-images/nonpeople_139.jpg', 'captcha-images/nonpeople_140.jpg',
+                    'captcha-images/nonpeople_141.jpg', 'captcha-images/nonpeople_142.jpg', 'captcha-images/nonpeople_143.jpg',
+                    'captcha-images/nonpeople_144.jpg', 'captcha-images/nonpeople_146.jpg', 'captcha-images/nonpeople_147.jpg',
+                    'captcha-images/nonpeople_148.jpg', 'captcha-images/nonpeople_149.jpg', 'captcha-images/nonpeople_150.jpg',
+                    'captcha-images/nonpeople_151.jpg', 'captcha-images/nonpeople_152.jpg', 'captcha-images/nonpeople_153.jpg',
+                    'captcha-images/nonpeople_154.jpg', 'captcha-images/nonpeople_155.jpg'
+                ];
+                
+                // Validate we have enough images
+                if (PEOPLE_IMAGES.length < 3) {
+                    throw new Error('Not enough people images (need at least 3, have ' + PEOPLE_IMAGES.length + ')');
+                }
+                if (NON_PEOPLE_IMAGES.length < 5) {
+                    throw new Error('Not enough non-people images (need at least 5, have ' + NON_PEOPLE_IMAGES.length + ')');
+                }
+                if (this.nonHumanImages.length < 1) {
+                    throw new Error('Not enough non-human images (need at least 1, have ' + this.nonHumanImages.length + ')');
                 }
                 
-                // Non-people images: check 1-155 (actual: 125 files exist, max number is 155)
-                for (let i = 1; i <= 155; i++) {
-                    nonPeopleImages.push(`captcha-images/nonpeople_${i}.jpg`);
-                }
-                
-                // Select exactly 3 images with people
-                const numPeopleImages = 3; // 3 people images
-                const numNonPeopleImages = 8 - numPeopleImages; // 4-5 non-people images
+                // Select exactly 3 people images, 5 non-people images, and 1 non-human image
+                const numPeopleImages = 3;
+                const numNonPeopleImages = 5;
                 
                 // Shuffle and select random images
-                const shuffledPeople = [...peopleImages].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
-                const shuffledNonPeople = [...nonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
-                
-                // Add one random non-human image
+                const shuffledPeople = [...PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
+                const shuffledNonPeople = [...NON_PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
                 
-                // Combine all images
-                const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                // Combine all images (3 people + 5 non-people + 1 non-human = 9 total)
+                const selectedImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage];
                 
-                // Preload all images into browser cache
-                const imagePromises = allImages.map(url => {
+                // Shuffle the final array
+                const shuffledFinalImages = selectedImages.sort(() => 0.5 - Math.random());
+                
+                // Preload all selected images with timeout and error handling
+                const imagePromises = shuffledFinalImages.map(url => {
                     return new Promise((resolve) => {
                         const img = new Image();
-                        img.onload = () => resolve({ url, img });
-                        img.onerror = () => resolve({ url, img: null });
+                        const timeout = setTimeout(() => {
+                            console.warn('Image load timeout:', url);
+                            resolve({ url, success: false });
+                        }, 5000); // 5 second timeout
+                        img.onload = () => {
+                            clearTimeout(timeout);
+                            resolve({ url, success: true });
+                        };
+                        img.onerror = () => {
+                            clearTimeout(timeout);
+                            console.warn('Image failed to load:', url);
+                            resolve({ url, success: false });
+                        };
                         img.src = url;
                     });
                 });
                 
-                await Promise.all(imagePromises);
+                const results = await Promise.all(imagePromises);
                 
-                // Track which indices have people, non-people, and non-human images
+                // Filter out failed loads and ensure we have at least 9 images
+                const validImages = results.filter(r => r.success).map(r => r.url);
+                
+                // If any images failed, try to replace them with backups
+                if (validImages.length < 9) {
+                    console.warn('Some images failed to load. Valid:', validImages.length, 'Expected: 9');
+                    const failedUrls = results.filter(r => !r.success).map(r => r.url);
+                    
+                    // Try to replace failed images with backups from the same category
+                    for (const failedUrl of failedUrls) {
+                        let replacement = null;
+                        if (failedUrl.startsWith('captcha-images/people_')) {
+                            // Find a people image not already selected
+                            const available = PEOPLE_IMAGES.filter(p => !validImages.includes(p) && !shuffledPeople.includes(p));
+                            if (available.length > 0) {
+                                replacement = available[Math.floor(Math.random() * available.length)];
+                            }
+                        } else if (failedUrl.startsWith('captcha-images/nonpeople_')) {
+                            // Find a non-people image not already selected
+                            const available = NON_PEOPLE_IMAGES.filter(p => !validImages.includes(p) && !shuffledNonPeople.includes(p));
+                            if (available.length > 0) {
+                                replacement = available[Math.floor(Math.random() * available.length)];
+                            }
+                        } else if (failedUrl.startsWith('nonhumans/')) {
+                            // Find a non-human image not already selected
+                            const available = this.nonHumanImages.filter(p => !validImages.includes(p) && p !== randomNonHumanImage);
+                            if (available.length > 0) {
+                                replacement = available[Math.floor(Math.random() * available.length)];
+                            }
+                        }
+                        
+                        if (replacement) {
+                            console.log('Replacing failed image', failedUrl, 'with', replacement);
+                            validImages.push(replacement);
+                        }
+                    }
+                }
+                
+                // Final validation: ensure we have exactly 9 images
+                if (validImages.length !== 9) {
+                    console.error('CRITICAL: Expected 9 images but have', validImages.length);
+                    // If we have fewer than 9, pad with duplicates (not ideal but ensures CAPTCHA works)
+                    while (validImages.length < 9 && validImages.length > 0) {
+                        validImages.push(validImages[validImages.length - 1]);
+                    }
+                }
+                
+                // Track indices for verification logic
                 const correctImages = [];
                 const nonPeopleIndices = [];
                 const nonHumanIndices = [];
-                allImages.forEach((url, index) => {
-                    if (shuffledPeople.includes(url)) {
+                
+                validImages.forEach((url, index) => {
+                    if (url === randomNonHumanImage || url.startsWith('nonhumans/')) {
+                        nonHumanIndices.push(index);
+                    } else if (shuffledPeople.includes(url)) {
                         correctImages.push(index);
                     } else if (shuffledNonPeople.includes(url)) {
                         nonPeopleIndices.push(index);
-                    } else if (url === randomNonHumanImage) {
-                        nonHumanIndices.push(index);
                     }
                 });
                 
+                // Final validation checks
+                if (correctImages.length !== 3) {
+                    console.error('CRITICAL: Expected 3 people images but found', correctImages.length);
+                }
+                if (nonPeopleIndices.length !== 5) {
+                    console.error('CRITICAL: Expected 5 non-people images but found', nonPeopleIndices.length);
+                }
+                if (nonHumanIndices.length !== 1) {
+                    console.error('CRITICAL: Expected 1 non-human image but found', nonHumanIndices.length);
+                }
+                
+                console.log('CAPTCHA Image Selection:');
+                console.log('  People images:', correctImages.length, correctImages);
+                console.log('  Non-people images:', nonPeopleIndices.length, nonPeopleIndices);
+                console.log('  Non-human images:', nonHumanIndices.length, nonHumanIndices);
+                console.log('  Total images:', validImages.length);
+                
                 // Store preloaded data
                 this.preloadedCaptchaData = {
-                    images: allImages,
+                    images: validImages,
                     correctImages: correctImages,
                     nonPeopleIndices: nonPeopleIndices,
                     nonHumanIndices: nonHumanIndices,
@@ -1033,6 +1171,7 @@
                 this.captchaNonHumanImages = nonHumanIndices;
             } catch (error) {
                 console.error('Error preloading CAPTCHA images:', error);
+                console.error('Error stack:', error.stack);
                 this.preloadedCaptchaData = null;
             }
         },
