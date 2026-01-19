@@ -1343,10 +1343,19 @@
             // Check if ONLY people images are selected (no extra images)
             const onlyPeopleSelected = captchaSelectedImages.length === captchaCorrectImages.length;
             
+            // Explicitly verify NO non-people images are selected
+            const noNonPeopleSelected = !captchaNonPeopleImages.some(idx => captchaSelectedImages.includes(idx));
+            
+            // Explicitly verify NO nonhuman images are selected
+            const noNonHumanSelected = !captchaNonHumanImages.some(idx => captchaSelectedImages.includes(idx));
+            
             console.log('  allPeopleSelected:', allPeopleSelected, '(need all of', captchaCorrectImages.length, 'people images)');
             console.log('  onlyPeopleSelected:', onlyPeopleSelected, '(selected:', captchaSelectedImages.length, 'vs correct:', captchaCorrectImages.length, ')');
+            console.log('  noNonPeopleSelected:', noNonPeopleSelected);
+            console.log('  noNonHumanSelected:', noNonHumanSelected);
             
-            if (allPeopleSelected && onlyPeopleSelected) {
+            // PASS only if: ALL people images selected AND no non-people selected AND no nonhuman selected
+            if (allPeopleSelected && onlyPeopleSelected && noNonPeopleSelected && noNonHumanSelected) {
                 // ALL people images are selected AND no other images are selected - verified
                 // Verifying state should already be showing from submitCaptcha()
                 const verifying = document.getElementById('captcha-verifying');
