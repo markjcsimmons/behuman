@@ -614,23 +614,37 @@
                     }
                     
                     try {
+                        console.log('Starting preload before showing CAPTCHA...');
                         // Wait for preloading to complete
                         if (!preloadedCaptchaData) {
                             await preloadCaptchaImages();
                         } else {
                             // Wait for images to finish loading (with timeout)
                             let waitCount = 0;
-                            const maxWait = 100; // 10 seconds max
-                            while (!preloadedCaptchaData.loaded && waitCount < maxWait) {
+                            const maxWait = 30; // 3 seconds max (reduced from 10s)
+                            while (preloadedCaptchaData && !preloadedCaptchaData.loaded && waitCount < maxWait) {
                                 await new Promise(resolve => setTimeout(resolve, 100));
                                 waitCount++;
                             }
-                            if (waitCount >= maxWait) {
-                                console.error('Timeout waiting for images to load');
+                            if (!preloadedCaptchaData || !preloadedCaptchaData.loaded) {
+                                console.warn('Timeout or error waiting for images to load, resetting and retrying...');
+                                preloadedCaptchaData = null; // Reset
+                                await preloadCaptchaImages(); // Try again
                             }
                         }
+                        
+                        // Final check - if still not loaded, proceed anyway (images will load on display)
+                        if (!preloadedCaptchaData || !preloadedCaptchaData.loaded) {
+                            console.warn('Preload did not complete, but proceeding to show CAPTCHA (images will load on display)');
+                        } else {
+                            console.log('Preload successful, ready to show CAPTCHA');
+                        }
                     } catch (error) {
-                        console.error('Error during preload wait:', error);
+                        console.error('Error during image preload:', error);
+                        console.error('Error stack:', error.stack);
+                        preloadedCaptchaData = null; // Reset on error
+                        // Don't block - proceed to show CAPTCHA even if preload failed
+                        console.warn('Proceeding to show CAPTCHA despite preload error (images will load on display)');
                     }
                     
                     if (submitBtn) {
@@ -844,18 +858,29 @@
         async function preloadCaptchaImages() {
             // If already loaded, return immediately
             if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
+                console.log('Images already preloaded, skipping...');
                 return; // Already preloaded
             }
             
-            // If already loading, wait for it to complete
+            // If already loading, wait for it to complete (with timeout)
             if (preloadedCaptchaData && !preloadedCaptchaData.loaded) {
-                // Wait for existing load to complete
-                while (!preloadedCaptchaData.loaded && preloadedCaptchaData !== null) {
+                console.log('Images already loading, waiting...');
+                let waitCount = 0;
+                const maxWait = 50; // 5 seconds max wait
+                while (!preloadedCaptchaData.loaded && preloadedCaptchaData !== null && waitCount < maxWait) {
                     await new Promise(resolve => setTimeout(resolve, 100));
+                    waitCount++;
                 }
-                return;
+                if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
+                    console.log('Waited for existing load, now loaded');
+                    return;
+                } else {
+                    console.warn('Timeout waiting for existing load, starting new load');
+                    preloadedCaptchaData = null; // Reset and start fresh
+                }
             }
             
+            console.log('Starting image preload...');
             // Set preloadedCaptchaData to a loading object to prevent concurrent loads
             preloadedCaptchaData = { loaded: false };
             
@@ -970,13 +995,14 @@
                 const shuffledFinalImages = selectedImages.sort(() => 0.5 - Math.random());
                 
                 // Preload all selected images with timeout and error handling
+                // Use shorter timeout for faster failure detection
                 const imagePromises = shuffledFinalImages.map(url => {
                     return new Promise((resolve) => {
                         const img = new Image();
                         const timeout = setTimeout(() => {
-                            console.warn('Image load timeout:', url);
+                            console.warn('Image load timeout (2s):', url);
                             resolve({ url, success: false });
-                        }, 5000); // 5 second timeout
+                        }, 2000); // 2 second timeout (reduced from 5s)
                         img.onload = () => {
                             clearTimeout(timeout);
                             resolve({ url, success: true });
@@ -990,12 +1016,15 @@
                     });
                 });
                 
+                console.log('Preloading', shuffledFinalImages.length, 'images...');
                 const results = await Promise.all(imagePromises);
+                console.log('Preload complete. Results:', results.filter(r => r.success).length, 'successful,', results.filter(r => !r.success).length, 'failed');
                 
                 // Filter out failed loads and ensure we have at least 9 images
                 const validImages = results.filter(r => r.success).map(r => r.url);
                 
-                // If any images failed, try to replace them with backups
+                // If any images failed, try to replace them with backups (but don't preload replacements - just add them)
+                // The browser will load them when displayed, which is fine for low-res images
                 if (validImages.length < 9) {
                     console.warn('Some images failed to load. Valid:', validImages.length, 'Expected: 9');
                     const failedUrls = results.filter(r => !r.success).map(r => r.url);
@@ -1024,8 +1053,10 @@
                         }
                         
                         if (replacement) {
-                            console.log('Replacing failed image', failedUrl, 'with', replacement);
+                            console.log('Replacing failed image', failedUrl, 'with', replacement, '(will load on display)');
                             validImages.push(replacement);
+                        } else {
+                            console.error('No replacement available for', failedUrl);
                         }
                     }
                 }
