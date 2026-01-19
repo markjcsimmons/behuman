@@ -861,23 +861,20 @@
             
             try {
                 // Build arrays by testing which files actually exist via preloading
-                // People images: check 1-50 (actual: 44 files exist)
+                // People images: check 1-45 (actual: 43 files exist, max number is 45)
                 const peopleTestImages = [];
-                for (let i = 1; i <= 50; i++) {
+                for (let i = 1; i <= 45; i++) {
                     peopleTestImages.push(`captcha-images/people_${i}.jpg`);
                 }
                 
-                // Non-people images: check 1-200 (actual: 129 files exist)
+                // Non-people images: check 1-155 (actual: 125 files exist, max number is 155)
                 const nonPeopleTestImages = [];
-                for (let i = 1; i <= 200; i++) {
+                for (let i = 1; i <= 155; i++) {
                     nonPeopleTestImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
-                // Non-human images: check for all images in nonhumans folder
-                // Since files have various names, we'll test a comprehensive list
-                const nonHumanTestImages = [];
-                // Known files from the folder
-                const knownNonHumanFiles = [
+                // Non-human images: only test the actual 16 files that exist
+                const nonHumanTestImages = [
                     'nonhumans/-1x-1 (1).webp',
                     'nonhumans/-1x-1.webp',
                     'nonhumans/101880-irans_oberster_revolutionsfuehrer_ayatollah_khomeini.jpg',
@@ -895,14 +892,6 @@
                     'nonhumans/GettyImages-488284394.avif',
                     'nonhumans/epstein-3-rt-gmh-251219_1766183679265_hpMain_4x3.avif'
                 ];
-                nonHumanTestImages.push(...knownNonHumanFiles);
-                // Also try numbered files in case more are added
-                for (let i = 1; i <= 50; i++) {
-                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpg`);
-                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpeg`);
-                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.png`);
-                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.webp`);
-                }
                 
                 // Preload all test images to determine which actually exist
                 // Batch the requests to avoid overwhelming the browser
