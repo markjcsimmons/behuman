@@ -613,14 +613,24 @@
                         submitBtn.disabled = true;
                     }
                     
-                    // Wait for preloading to complete
-                    if (!preloadedCaptchaData) {
-                        await preloadCaptchaImages();
-                    } else {
-                        // Wait for images to finish loading
-                        while (!preloadedCaptchaData.loaded) {
-                            await new Promise(resolve => setTimeout(resolve, 100));
+                    try {
+                        // Wait for preloading to complete
+                        if (!preloadedCaptchaData) {
+                            await preloadCaptchaImages();
+                        } else {
+                            // Wait for images to finish loading (with timeout)
+                            let waitCount = 0;
+                            const maxWait = 100; // 10 seconds max
+                            while (!preloadedCaptchaData.loaded && waitCount < maxWait) {
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                                waitCount++;
+                            }
+                            if (waitCount >= maxWait) {
+                                console.error('Timeout waiting for images to load');
+                            }
                         }
+                    } catch (error) {
+                        console.error('Error during preload wait:', error);
                     }
                     
                     if (submitBtn) {
@@ -633,11 +643,20 @@
                 // Add a small additional delay to ensure DOM rendering is complete
                 await new Promise(resolve => setTimeout(resolve, 200));
                 
-                // Show CAPTCHA screen
-                document.getElementById('statements-screen').style.display = 'none';
-                document.getElementById('captcha-screen').style.display = 'block';
+                // Show CAPTCHA screen (even if preload failed, show it and use fallback)
+                console.log('Showing CAPTCHA screen...');
+                const statementsScreen = document.getElementById('statements-screen');
+                const captchaScreen = document.getElementById('captcha-screen');
+                if (statementsScreen) statementsScreen.style.display = 'none';
+                if (captchaScreen) {
+                    captchaScreen.style.display = 'block';
+                    console.log('CAPTCHA screen displayed');
+                } else {
+                    console.error('ERROR: captcha-screen element not found!');
+                }
                 
                 // Load images into grid
+                console.log('Calling loadCaptchaImages()...');
                 loadCaptchaImages();
                 
                 // Add a small delay to ensure grid is fully rendered before continuing
@@ -1143,6 +1162,7 @@
                 // New images will be preloaded in the background after CAPTCHA is shown
             } else {
                 // Fallback: load on demand if not preloaded
+                console.log('No preloaded data available, using async fallback...');
                 loadCaptchaImagesAsync();
             }
         }
