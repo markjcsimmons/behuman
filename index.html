@@ -920,7 +920,16 @@
                 
                 // Filter out any failed loads (shouldn't happen, but be safe)
                 const validResults = results.filter(r => r.success && r.img !== null);
-                const shuffledFinalImages = validResults.map(r => r.url);
+                let shuffledFinalImages = validResults.map(r => r.url);
+                
+                // Ensure nonhuman image is included (it was validated in test phase, so it should exist)
+                if (randomNonHumanImage && !shuffledFinalImages.includes(randomNonHumanImage)) {
+                    console.warn('Nonhuman image was filtered out, adding it back:', randomNonHumanImage);
+                    // Add it back - it was validated in the test phase, so it should exist
+                    shuffledFinalImages.push(randomNonHumanImage);
+                    // Re-shuffle to maintain randomness
+                    shuffledFinalImages = shuffledFinalImages.sort(() => 0.5 - Math.random());
+                }
                 
                 // Track which indices have people, non-people, and non-human images in the final shuffled array
                 const correctImages = [];
