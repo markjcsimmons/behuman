@@ -854,11 +854,11 @@
                     nonPeopleTestImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
-                // Non-human images: check for nonhuman_*.jpg and nonhuman_*.jpeg in nonhumans folder
+                // Non-human images: check for nonhuman_*.jpg and nonhuman_*.jpeg in captcha-images
                 const nonHumanTestImages = [];
                 for (let i = 1; i <= 50; i++) {
-                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpg`);
-                    nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpeg`);
+                    nonHumanTestImages.push(`captcha-images/nonhuman_${i}.jpg`);
+                    nonHumanTestImages.push(`captcha-images/nonhuman_${i}.jpeg`);
                 }
                 
                 // Preload all test images to determine which actually exist
@@ -883,7 +883,7 @@
                     .map(r => r.url);
                 
                 const nonHumanImages = testResults
-                    .filter(r => r.success && r.url.startsWith('nonhumans/nonhuman_'))
+                    .filter(r => r.success && r.url.startsWith('captcha-images/nonhuman_'))
                     .map(r => r.url);
                 
                 // Debug: Log what we found
@@ -896,7 +896,7 @@
                 } else {
                     console.warn('  WARNING: No nonhuman images found!');
                     // Debug: Check what test results we got for nonhuman images
-                    const nonHumanTestResults = testResults.filter(r => r.url.startsWith('nonhumans/nonhuman_'));
+                    const nonHumanTestResults = testResults.filter(r => r.url.startsWith('captcha-images/nonhuman_'));
                     console.log('  Nonhuman test attempts:', nonHumanTestResults.length);
                     console.log('  Successful nonhuman loads:', nonHumanTestResults.filter(r => r.success).length);
                     console.log('  Failed nonhuman loads:', nonHumanTestResults.filter(r => !r.success).length);
@@ -1129,11 +1129,11 @@
                     nonPeopleImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
-                // Non-human images: try 1-50 for both .jpg and .jpeg in nonhumans folder
+                // Non-human images: try 1-50 for both .jpg and .jpeg in captcha-images
                 const nonHumanImages = [];
                 for (let i = 1; i <= 50; i++) {
-                    nonHumanImages.push(`nonhumans/nonhuman_${i}.jpg`);
-                    nonHumanImages.push(`nonhumans/nonhuman_${i}.jpeg`);
+                    nonHumanImages.push(`captcha-images/nonhuman_${i}.jpg`);
+                    nonHumanImages.push(`captcha-images/nonhuman_${i}.jpeg`);
                 }
                 
                 // Test which images actually exist by attempting to load them
@@ -1158,7 +1158,7 @@
                     .map(r => r.url);
                 
                 const validNonHumanImages = testResults
-                    .filter(r => r.success && r.url.startsWith('nonhumans/nonhuman_'))
+                    .filter(r => r.success && r.url.startsWith('captcha-images/nonhuman_'))
                     .map(r => r.url);
                 
                 // Select exactly 3 images with people
