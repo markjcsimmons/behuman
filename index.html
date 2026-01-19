@@ -1080,6 +1080,7 @@
                 };
             } catch (error) {
                 console.error('Error preloading CAPTCHA images:', error);
+                console.error('Error stack:', error.stack);
                 preloadedCaptchaData = null;
             }
         }
