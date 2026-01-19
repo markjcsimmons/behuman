@@ -899,19 +899,36 @@
                     ? nonHumanImages[Math.floor(Math.random() * nonHumanImages.length)]
                     : null;
                 
-                // Combine all images (all should exist now)
+                // Combine all images (all should exist now) - ensure no duplicates
                 const allImages = [...shuffledPeople, ...shuffledNonPeople];
-                if (randomNonHumanImage) {
+                if (randomNonHumanImage && !allImages.includes(randomNonHumanImage)) {
                     allImages.push(randomNonHumanImage);
                 }
-                const shuffledAllImages = allImages.sort(() => 0.5 - Math.random());
+                
+                // Remove any duplicates (shouldn't happen, but be safe)
+                const uniqueImages = [...new Set(allImages)];
+                
+                // Shuffle the unique images
+                const shuffledAllImages = uniqueImages.sort(() => 0.5 - Math.random());
+                
+                // Debug: Log what we're about to preload
+                console.log('Preloading CAPTCHA images:', {
+                    people: shuffledPeople.length,
+                    nonPeople: shuffledNonPeople.length,
+                    nonHuman: randomNonHumanImage ? 1 : 0,
+                    total: shuffledAllImages.length,
+                    nonHumanImage: randomNonHumanImage
+                });
                 
                 // Preload the selected images (they should all load successfully now)
                 const imagePromises = shuffledAllImages.map(url => {
                     return new Promise((resolve) => {
                         const img = new Image();
                         img.onload = () => resolve({ url, img, success: true });
-                        img.onerror = () => resolve({ url, img: null, success: false });
+                        img.onerror = () => {
+                            console.warn('Image failed to load:', url);
+                            resolve({ url, img: null, success: false });
+                        };
                         img.src = url;
                     });
                 });
@@ -922,13 +939,16 @@
                 const validResults = results.filter(r => r.success && r.img !== null);
                 let shuffledFinalImages = validResults.map(r => r.url);
                 
-                // Ensure nonhuman image is included (it was validated in test phase, so it should exist)
-                if (randomNonHumanImage && !shuffledFinalImages.includes(randomNonHumanImage)) {
-                    console.warn('Nonhuman image was filtered out, adding it back:', randomNonHumanImage);
-                    // Add it back - it was validated in the test phase, so it should exist
-                    shuffledFinalImages.push(randomNonHumanImage);
-                    // Re-shuffle to maintain randomness
-                    shuffledFinalImages = shuffledFinalImages.sort(() => 0.5 - Math.random());
+                // CRITICAL: Ensure nonhuman image is ALWAYS included (it was validated in test phase)
+                if (randomNonHumanImage) {
+                    if (!shuffledFinalImages.includes(randomNonHumanImage)) {
+                        console.warn('Nonhuman image was filtered out, adding it back:', randomNonHumanImage);
+                        shuffledFinalImages.push(randomNonHumanImage);
+                        // Re-shuffle to maintain randomness
+                        shuffledFinalImages = shuffledFinalImages.sort(() => 0.5 - Math.random());
+                    }
+                    // Remove duplicates again after adding nonhuman back
+                    shuffledFinalImages = [...new Set(shuffledFinalImages)];
                 }
                 
                 // Track which indices have people, non-people, and non-human images in the final shuffled array
@@ -1082,12 +1102,26 @@
                     ? validNonHumanImages[Math.floor(Math.random() * validNonHumanImages.length)]
                     : null;
                 
-                // Combine and shuffle all images
+                // Combine and shuffle all images - ensure no duplicates
                 const allImages = [...shuffledPeople, ...shuffledNonPeople];
-                if (randomNonHumanImage) {
+                if (randomNonHumanImage && !allImages.includes(randomNonHumanImage)) {
                     allImages.push(randomNonHumanImage);
                 }
-                const shuffledAllImages = allImages.sort(() => 0.5 - Math.random());
+                
+                // Remove any duplicates (shouldn't happen, but be safe)
+                const uniqueImages = [...new Set(allImages)];
+                
+                // Shuffle the unique images
+                const shuffledAllImages = uniqueImages.sort(() => 0.5 - Math.random());
+                
+                // Debug: Log what we're about to display
+                console.log('Async CAPTCHA images:', {
+                    people: shuffledPeople.length,
+                    nonPeople: shuffledNonPeople.length,
+                    nonHuman: randomNonHumanImage ? 1 : 0,
+                    total: shuffledAllImages.length,
+                    nonHumanImage: randomNonHumanImage
+                });
                 
                 // Track which indices have people, non-people, and non-human images
                 captchaCorrectImages = [];
