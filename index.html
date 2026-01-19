@@ -764,26 +764,7 @@
         // Pexels API Configuration
         const PEXELS_API_KEY = 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh';
         
-        // Non-human images from local folder
-        const NON_HUMAN_IMAGES = [
-            'nonhumans/nonhuman_1.jpeg',
-            'nonhumans/nonhuman_2.jpeg',
-            'nonhumans/nonhuman_3.jpeg',
-            'nonhumans/nonhuman_4.jpeg',
-            'nonhumans/nonhuman_5.jpeg',
-            'nonhumans/nonhuman_6.jpeg',
-            'nonhumans/nonhuman_7.jpeg',
-            'nonhumans/nonhuman_8.jpeg',
-            'nonhumans/nonhuman_9.jpeg',
-            'nonhumans/nonhuman_10.jpeg',
-            'nonhumans/nonhuman_11.jpeg',
-            'nonhumans/nonhuman_12.jpeg',
-            'nonhumans/nonhuman_13.jpeg',
-            'nonhumans/nonhuman_14.jpeg',
-            'nonhumans/nonhuman_15.jpeg',
-            'nonhumans/nonhuman_16.jpeg',
-            'nonhumans/nonhuman_17.jpeg'
-        ];
+        // Non-human images will be loaded from captcha-images folder dynamically
         
         // Load TensorFlow.js detection model (load early for better performance)
         async function loadDetectionModel() {
@@ -873,8 +854,15 @@
                     nonPeopleTestImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
+                // Non-human images: check for nonhuman_*.jpg and nonhuman_*.jpeg in captcha-images
+                const nonHumanTestImages = [];
+                for (let i = 1; i <= 50; i++) {
+                    nonHumanTestImages.push(`captcha-images/nonhuman_${i}.jpg`);
+                    nonHumanTestImages.push(`captcha-images/nonhuman_${i}.jpeg`);
+                }
+                
                 // Preload all test images to determine which actually exist
-                const testImagePromises = [...peopleTestImages, ...nonPeopleTestImages].map(url => {
+                const testImagePromises = [...peopleTestImages, ...nonPeopleTestImages, ...nonHumanTestImages].map(url => {
                     return new Promise((resolve) => {
                         const img = new Image();
                         img.onload = () => resolve({ url, success: true });
@@ -894,6 +882,10 @@
                     .filter(r => r.success && r.url.startsWith('captcha-images/nonpeople_'))
                     .map(r => r.url);
                 
+                const nonHumanImages = testResults
+                    .filter(r => r.success && r.url.startsWith('captcha-images/nonhuman_'))
+                    .map(r => r.url);
+                
                 // Select exactly 3 images with people
                 const numPeopleImages = 3; // 3 people images
                 const numNonPeopleImages = 8 - numPeopleImages; // 5 non-people images
@@ -902,14 +894,20 @@
                 const shuffledPeople = [...peopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numPeopleImages, peopleImages.length));
                 const shuffledNonPeople = [...nonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numNonPeopleImages, nonPeopleImages.length));
                 
-                // Add one random non-human image
-                const randomNonHumanImage = NON_HUMAN_IMAGES[Math.floor(Math.random() * NON_HUMAN_IMAGES.length)];
+                // Add one random non-human image from captcha-images folder
+                const randomNonHumanImage = nonHumanImages.length > 0 
+                    ? nonHumanImages[Math.floor(Math.random() * nonHumanImages.length)]
+                    : null;
                 
                 // Combine all images (all should exist now)
-                const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                const allImages = [...shuffledPeople, ...shuffledNonPeople];
+                if (randomNonHumanImage) {
+                    allImages.push(randomNonHumanImage);
+                }
+                const shuffledAllImages = allImages.sort(() => 0.5 - Math.random());
                 
                 // Preload the selected images (they should all load successfully now)
-                const imagePromises = allImages.map(url => {
+                const imagePromises = shuffledAllImages.map(url => {
                     return new Promise((resolve) => {
                         const img = new Image();
                         img.onload = () => resolve({ url, img, success: true });
@@ -1030,25 +1028,63 @@
                     nonPeopleImages.push(`captcha-images/nonpeople_${i}.jpg`);
                 }
                 
+                // Non-human images: try 1-50 for both .jpg and .jpeg
+                const nonHumanImages = [];
+                for (let i = 1; i <= 50; i++) {
+                    nonHumanImages.push(`captcha-images/nonhuman_${i}.jpg`);
+                    nonHumanImages.push(`captcha-images/nonhuman_${i}.jpeg`);
+                }
+                
+                // Test which images actually exist by attempting to load them
+                const testPromises = [...peopleImages, ...nonPeopleImages, ...nonHumanImages].map(url => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => resolve({ url, success: true });
+                        img.onerror = () => resolve({ url, success: false });
+                        img.src = url;
+                    });
+                });
+                
+                const testResults = await Promise.all(testPromises);
+                
+                // Build arrays of only existing files
+                const validPeopleImages = testResults
+                    .filter(r => r.success && r.url.startsWith('captcha-images/people_'))
+                    .map(r => r.url);
+                
+                const validNonPeopleImages = testResults
+                    .filter(r => r.success && r.url.startsWith('captcha-images/nonpeople_'))
+                    .map(r => r.url);
+                
+                const validNonHumanImages = testResults
+                    .filter(r => r.success && r.url.startsWith('captcha-images/nonhuman_'))
+                    .map(r => r.url);
+                
                 // Select exactly 3 images with people
                 const numPeopleImages = 3; // 3 people images
-                const numNonPeopleImages = 8 - numPeopleImages; // 4-5 non-people images
+                const numNonPeopleImages = 8 - numPeopleImages; // 5 non-people images
                 
-                // Shuffle and select random images
-                const shuffledPeople = [...peopleImages].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
-                const shuffledNonPeople = [...nonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                // Shuffle and select random images from only existing files
+                const shuffledPeople = [...validPeopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numPeopleImages, validPeopleImages.length));
+                const shuffledNonPeople = [...validNonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numNonPeopleImages, validNonPeopleImages.length));
                 
-                // Add one random non-human image
-                const randomNonHumanImage = NON_HUMAN_IMAGES[Math.floor(Math.random() * NON_HUMAN_IMAGES.length)];
+                // Add one random non-human image from captcha-images folder
+                const randomNonHumanImage = validNonHumanImages.length > 0 
+                    ? validNonHumanImages[Math.floor(Math.random() * validNonHumanImages.length)]
+                    : null;
                 
                 // Combine and shuffle all images
-                const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                const allImages = [...shuffledPeople, ...shuffledNonPeople];
+                if (randomNonHumanImage) {
+                    allImages.push(randomNonHumanImage);
+                }
+                const shuffledAllImages = allImages.sort(() => 0.5 - Math.random());
                 
                 // Track which indices have people, non-people, and non-human images
                 captchaCorrectImages = [];
                 captchaNonPeopleImages = [];
                 captchaNonHumanImages = [];
-                allImages.forEach((url, index) => {
+                shuffledAllImages.forEach((url, index) => {
                     if (shuffledPeople.includes(url)) {
                         captchaCorrectImages.push(index);
                     } else if (shuffledNonPeople.includes(url)) {
@@ -1063,14 +1099,14 @@
                 console.log('  People images (should be 3):', captchaCorrectImages.length, captchaCorrectImages);
                 console.log('  Non-people images (should be 5):', captchaNonPeopleImages.length, captchaNonPeopleImages);
                 console.log('  Nonhuman images (should be 1):', captchaNonHumanImages.length, captchaNonHumanImages);
-                console.log('  Total images:', allImages.length);
+                console.log('  Total images:', shuffledAllImages.length);
                 console.log('  Selected nonhuman image:', randomNonHumanImage);
                 
                 // Clear loading state
                 grid.innerHTML = '';
                 
                 // Create image containers
-                allImages.forEach((url, index) => {
+                shuffledAllImages.forEach((url, index) => {
                     const container = document.createElement('div');
                     container.className = 'captcha-image-container';
                     container.dataset.index = index;
