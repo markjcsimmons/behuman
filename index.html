@@ -1024,18 +1024,26 @@
                 const correctImages = [];
                 const nonPeopleIndices = [];
                 const nonHumanIndices = [];
+                
+                console.log('Tracking image indices in shuffledFinalImages (length:', shuffledFinalImages.length, '):');
+                console.log('  shuffledPeople URLs:', shuffledPeople);
+                console.log('  shuffledNonPeople URLs:', shuffledNonPeople);
+                console.log('  randomNonHumanImage:', randomNonHumanImage);
+                
                 shuffledFinalImages.forEach((url, index) => {
                     // Check if it's a nonhuman image FIRST (most specific check)
-                    if (url === randomNonHumanImage || url.includes('nonhumans/')) {
+                    if (url === randomNonHumanImage || url.startsWith('nonhumans/')) {
                         nonHumanIndices.push(index);
-                        console.log('  Found nonhuman image at index', index, ':', url);
+                        console.log('  [', index, '] NONHUMAN:', url);
                     } else if (shuffledPeople.includes(url)) {
                         correctImages.push(index);
+                        console.log('  [', index, '] PEOPLE:', url);
                     } else if (shuffledNonPeople.includes(url)) {
                         nonPeopleIndices.push(index);
+                        console.log('  [', index, '] NON-PEOPLE:', url);
                     } else {
                         // This shouldn't happen - log it
-                        console.warn('  Unknown image type at index', index, ':', url);
+                        console.warn('  [', index, '] UNKNOWN:', url);
                     }
                 });
                 
