@@ -1000,14 +1000,34 @@
                 const nonPeopleIndices = [];
                 const nonHumanIndices = [];
                 shuffledFinalImages.forEach((url, index) => {
-                    if (shuffledPeople.includes(url)) {
+                    // Check if it's a nonhuman image FIRST (most specific check)
+                    if (url === randomNonHumanImage || url.includes('nonhuman_')) {
+                        nonHumanIndices.push(index);
+                        console.log('  Found nonhuman image at index', index, ':', url);
+                    } else if (shuffledPeople.includes(url)) {
                         correctImages.push(index);
                     } else if (shuffledNonPeople.includes(url)) {
                         nonPeopleIndices.push(index);
-                    } else if (url === randomNonHumanImage) {
-                        nonHumanIndices.push(index);
+                    } else {
+                        // This shouldn't happen - log it
+                        console.warn('  Unknown image type at index', index, ':', url);
                     }
                 });
+                
+                // CRITICAL CHECK: Verify we have exactly one nonhuman image
+                if (nonHumanIndices.length === 0 && randomNonHumanImage) {
+                    console.error('CRITICAL: randomNonHumanImage is set but not found in shuffledFinalImages!');
+                    console.error('  randomNonHumanImage:', randomNonHumanImage);
+                    console.error('  shuffledFinalImages:', shuffledFinalImages);
+                    // Try to find it
+                    const foundIndex = shuffledFinalImages.findIndex(url => url === randomNonHumanImage || url.includes('nonhuman_'));
+                    if (foundIndex !== -1) {
+                        console.error('  Found it at index', foundIndex, 'but tracking logic missed it!');
+                        nonHumanIndices.push(foundIndex);
+                    }
+                } else if (nonHumanIndices.length > 1) {
+                    console.error('CRITICAL: Found', nonHumanIndices.length, 'nonhuman images, should be exactly 1!');
+                }
                 
                 // Debug logging
                 console.log('CAPTCHA Image Selection (filtered):');
