@@ -886,6 +886,25 @@
                     .filter(r => r.success && r.url.startsWith('captcha-images/nonhuman_'))
                     .map(r => r.url);
                 
+                // Debug: Log what we found
+                console.log('Image detection results:');
+                console.log('  People images found:', peopleImages.length);
+                console.log('  Non-people images found:', nonPeopleImages.length);
+                console.log('  Nonhuman images found:', nonHumanImages.length);
+                if (nonHumanImages.length > 0) {
+                    console.log('  Nonhuman image examples:', nonHumanImages.slice(0, 3));
+                } else {
+                    console.warn('  WARNING: No nonhuman images found!');
+                    // Debug: Check what test results we got for nonhuman images
+                    const nonHumanTestResults = testResults.filter(r => r.url.startsWith('captcha-images/nonhuman_'));
+                    console.log('  Nonhuman test attempts:', nonHumanTestResults.length);
+                    console.log('  Successful nonhuman loads:', nonHumanTestResults.filter(r => r.success).length);
+                    console.log('  Failed nonhuman loads:', nonHumanTestResults.filter(r => !r.success).length);
+                    if (nonHumanTestResults.filter(r => !r.success).length > 0) {
+                        console.log('  Failed nonhuman URLs:', nonHumanTestResults.filter(r => !r.success).slice(0, 5).map(r => r.url));
+                    }
+                }
+                
                 // Select exactly 3 images with people
                 const numPeopleImages = 3; // 3 people images
                 const numNonPeopleImages = 8 - numPeopleImages; // 5 non-people images
@@ -899,10 +918,24 @@
                     ? nonHumanImages[Math.floor(Math.random() * nonHumanImages.length)]
                     : null;
                 
+                // CRITICAL: If no nonhuman image was found, log error
+                if (!randomNonHumanImage) {
+                    console.error('ERROR: No nonhuman image selected!');
+                    console.error('  nonHumanImages array length:', nonHumanImages.length);
+                    console.error('  nonHumanImages array:', nonHumanImages);
+                } else {
+                    console.log('Selected nonhuman image:', randomNonHumanImage);
+                }
+                
                 // Combine all images (all should exist now) - ensure no duplicates
                 const allImages = [...shuffledPeople, ...shuffledNonPeople];
                 if (randomNonHumanImage && !allImages.includes(randomNonHumanImage)) {
                     allImages.push(randomNonHumanImage);
+                    console.log('Added nonhuman image to allImages array');
+                } else if (randomNonHumanImage) {
+                    console.warn('Nonhuman image already in allImages (should not happen):', randomNonHumanImage);
+                } else {
+                    console.error('ERROR: Cannot add nonhuman image - randomNonHumanImage is null!');
                 }
                 
                 // Remove any duplicates (shouldn't happen, but be safe)
