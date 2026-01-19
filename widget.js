@@ -1253,9 +1253,9 @@
                     nonPeopleImages.push(`captcha-images/nonpeople/nonpeople_${i}.jpg`);
                 }
                 
-                // Select exactly 3 images with people
+                // Select exactly 3 images from people folder, 5 from non-people folder, and 1 from nonhumans folder
                 const numPeopleImages = 3; // 3 people images
-                const numNonPeopleImages = 8 - numPeopleImages; // 4-5 non-people images
+                const numNonPeopleImages = 5; // 5 non-people images
                 
                 // Shuffle and select random images
                 const shuffledPeople = [...peopleImages].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
