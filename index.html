@@ -905,16 +905,40 @@
                 }
                 
                 // Preload all test images to determine which actually exist
-                const testImagePromises = [...peopleTestImages, ...nonPeopleTestImages, ...nonHumanTestImages].map(url => {
-                    return new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = () => resolve({ url, success: true });
-                        img.onerror = () => resolve({ url, success: false });
-                        img.src = url;
-                    });
-                });
+                // Batch the requests to avoid overwhelming the browser
+                const allTestImages = [...peopleTestImages, ...nonPeopleTestImages, ...nonHumanTestImages];
+                console.log('Testing', allTestImages.length, 'images to find existing ones...');
                 
-                const testResults = await Promise.all(testImagePromises);
+                // Process in batches of 50 to avoid overwhelming the browser
+                const batchSize = 50;
+                const testResults = [];
+                for (let i = 0; i < allTestImages.length; i += batchSize) {
+                    const batch = allTestImages.slice(i, i + batchSize);
+                    const batchPromises = batch.map(url => {
+                        return new Promise((resolve) => {
+                            const img = new Image();
+                            // Set timeout to prevent hanging on bad URLs
+                            const timeout = setTimeout(() => {
+                                resolve({ url, success: false });
+                            }, 2000); // 2 second timeout per image
+                            img.onload = () => {
+                                clearTimeout(timeout);
+                                resolve({ url, success: true });
+                            };
+                            img.onerror = () => {
+                                clearTimeout(timeout);
+                                resolve({ url, success: false });
+                            };
+                            img.src = url;
+                        });
+                    });
+                    const batchResults = await Promise.all(batchPromises);
+                    testResults.push(...batchResults);
+                    // Small delay between batches to avoid overwhelming
+                    if (i + batchSize < allTestImages.length) {
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                    }
+                }
                 
                 // Build arrays of only existing files
                 const peopleImages = testResults
