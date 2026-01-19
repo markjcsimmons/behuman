@@ -1071,17 +1071,43 @@
                 }
                 
                 // Track indices for verification logic
+                // IMPORTANT: Track based on URL patterns, not just the original arrays
+                // This handles cases where images were replaced due to load failures
                 const correctImages = [];
                 const nonPeopleIndices = [];
                 const nonHumanIndices = [];
                 
+                console.log('Tracking image indices. shuffledPeople:', shuffledPeople);
+                console.log('Tracking image indices. shuffledNonPeople:', shuffledNonPeople);
+                console.log('Tracking image indices. randomNonHumanImage:', randomNonHumanImage);
+                console.log('Tracking image indices. validImages:', validImages);
+                
                 validImages.forEach((url, index) => {
+                    // Check non-human first (most specific)
                     if (url === randomNonHumanImage || url.startsWith('nonhumans/')) {
                         nonHumanIndices.push(index);
-                    } else if (shuffledPeople.includes(url)) {
+                        console.log(`  [${index}] NONHUMAN:`, url);
+                    } 
+                    // Check if it's a people image (by URL pattern or original array)
+                    else if (url.startsWith('captcha-images/people_') || shuffledPeople.includes(url)) {
                         correctImages.push(index);
-                    } else if (shuffledNonPeople.includes(url)) {
+                        console.log(`  [${index}] PEOPLE:`, url);
+                    } 
+                    // Check if it's a non-people image (by URL pattern or original array)
+                    else if (url.startsWith('captcha-images/nonpeople_') || shuffledNonPeople.includes(url)) {
                         nonPeopleIndices.push(index);
+                        console.log(`  [${index}] NON-PEOPLE:`, url);
+                    } 
+                    else {
+                        // Unknown - try to classify by URL pattern
+                        console.warn(`  [${index}] UNKNOWN:`, url);
+                        if (url.includes('people_')) {
+                            correctImages.push(index);
+                            console.log(`    → Classified as PEOPLE by URL pattern`);
+                        } else if (url.includes('nonpeople_')) {
+                            nonPeopleIndices.push(index);
+                            console.log(`    → Classified as NON-PEOPLE by URL pattern`);
+                        }
                     }
                 });
                 
