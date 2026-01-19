@@ -855,17 +855,35 @@
                 }
                 
                 // Non-human images: check for all images in nonhumans folder
+                // Since files have various names, we'll test a comprehensive list
                 const nonHumanTestImages = [];
-                // Try common image extensions and a wide range of numbers
-                for (let i = 1; i <= 100; i++) {
+                // Known files from the folder
+                const knownNonHumanFiles = [
+                    'nonhumans/-1x-1 (1).webp',
+                    'nonhumans/-1x-1.webp',
+                    'nonhumans/101880-irans_oberster_revolutionsfuehrer_ayatollah_khomeini.jpg',
+                    'nonhumans/1246092576.jpeg',
+                    'nonhumans/230411-stephen-miller-jm-1201-e7c9ec.webp',
+                    'nonhumans/96420520370dfb0d72f3e8626c1b76b1.webp',
+                    'nonhumans/RTX3WBE3.jpg',
+                    'nonhumans/default.jpg',
+                    'nonhumans/download.webp',
+                    'nonhumans/image-of-syrias-president-bashar-al-assad-during-a-wreath-laying-ceremony-at-the-tomb-of-the-unknown-soldier-by-the-kremlin-wall.jpg',
+                    'nonhumans/images.jpeg',
+                    'nonhumans/kim-jong-un-person-of-year-2017-time-magazine-square.webp',
+                    'nonhumans/prince_andrew_2019-11-20T183540Z_57980807_RC26FD92DQ0B_RTRMADP_3_BRITAIN-ROYALS-ANDREW-DUTIES.jpg',
+                    'nonhumans/GettyImages-1247180967-scaled.avif',
+                    'nonhumans/GettyImages-488284394.avif',
+                    'nonhumans/epstein-3-rt-gmh-251219_1766183679265_hpMain_4x3.avif'
+                ];
+                nonHumanTestImages.push(...knownNonHumanFiles);
+                // Also try numbered files in case more are added
+                for (let i = 1; i <= 50; i++) {
                     nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpg`);
                     nonHumanTestImages.push(`nonhumans/nonhuman_${i}.jpeg`);
                     nonHumanTestImages.push(`nonhumans/nonhuman_${i}.png`);
                     nonHumanTestImages.push(`nonhumans/nonhuman_${i}.webp`);
                 }
-                // Also try files without numbers (just in case)
-                const commonNames = ['nonhuman.jpg', 'nonhuman.jpeg', 'nonhuman.png', 'nonhuman.webp'];
-                commonNames.forEach(name => nonHumanTestImages.push(`nonhumans/${name}`));
                 
                 // Preload all test images to determine which actually exist
                 const testImagePromises = [...peopleTestImages, ...nonPeopleTestImages, ...nonHumanTestImages].map(url => {
