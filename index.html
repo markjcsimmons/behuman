@@ -1091,7 +1091,7 @@
             captchaSelectedImages = [];
             
             // If we have preloaded data and it's loaded, use it
-            if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
+            if (preloadedCaptchaData && preloadedCaptchaData.loaded && preloadedCaptchaData.images && preloadedCaptchaData.images.length > 0) {
                 captchaCorrectImages = preloadedCaptchaData.correctImages;
                 captchaNonPeopleImages = preloadedCaptchaData.nonPeopleIndices || [];
                 captchaNonHumanImages = preloadedCaptchaData.nonHumanIndices || [];
