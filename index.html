@@ -1105,14 +1105,16 @@
                         console.log(`  [${index}] NON-PEOPLE:`, url);
                     } 
                     else {
-                        // Unknown - try to classify by URL pattern
+                        // Unknown - try to classify by URL pattern (handles old paths and replacements)
                         console.warn(`  [${index}] UNKNOWN:`, url);
-                        if (url.includes('people_')) {
+                        if (url.includes('/people/') || url.includes('people_')) {
                             correctImages.push(index);
                             console.log(`    → Classified as PEOPLE by URL pattern`);
-                        } else if (url.includes('nonpeople_')) {
+                        } else if (url.includes('/nonpeople/') || url.includes('nonpeople_')) {
                             nonPeopleIndices.push(index);
                             console.log(`    → Classified as NON-PEOPLE by URL pattern`);
+                        } else {
+                            console.error(`    → Could not classify image:`, url);
                         }
                     }
                 });
@@ -1222,52 +1224,94 @@
             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             
             try {
-                // Generate arrays of local image paths based on actual files
-                // Build list dynamically by attempting to load files and filtering successful loads
-                const peopleImages = [];
-                const nonPeopleImages = [];
+                // Use static lists (same as main preload function) - no need to test, just use known files
+                const PEOPLE_IMAGES_ASYNC = [
+                    'captcha-images/people/people_1.jpg', 'captcha-images/people/people_2.jpg', 'captcha-images/people/people_3.jpg',
+                    'captcha-images/people/people_4.jpg', 'captcha-images/people/people_5.jpg', 'captcha-images/people/people_6.jpg',
+                    'captcha-images/people/people_7.jpg', 'captcha-images/people/people_8.jpg', 'captcha-images/people/people_9.jpg',
+                    'captcha-images/people/people_10.jpg', 'captcha-images/people/people_11.jpg', 'captcha-images/people/people_12.jpg',
+                    'captcha-images/people/people_13.jpg', 'captcha-images/people/people_14.jpg', 'captcha-images/people/people_15.jpg',
+                    'captcha-images/people/people_16.jpg', 'captcha-images/people/people_17.jpg', 'captcha-images/people/people_18.jpg',
+                    'captcha-images/people/people_19.jpg', 'captcha-images/people/people_20.jpg', 'captcha-images/people/people_21.jpg',
+                    'captcha-images/people/people_22.jpg', 'captcha-images/people/people_23.jpg', 'captcha-images/people/people_25.jpg',
+                    'captcha-images/people/people_26.jpg', 'captcha-images/people/people_27.jpg', 'captcha-images/people/people_28.jpg',
+                    'captcha-images/people/people_29.jpg', 'captcha-images/people/people_31.jpg', 'captcha-images/people/people_32.jpg',
+                    'captcha-images/people/people_33.jpg', 'captcha-images/people/people_34.jpg', 'captcha-images/people/people_35.jpg',
+                    'captcha-images/people/people_36.jpg', 'captcha-images/people/people_37.jpg', 'captcha-images/people/people_38.jpg',
+                    'captcha-images/people/people_39.jpg', 'captcha-images/people/people_40.jpg', 'captcha-images/people/people_41.jpg',
+                    'captcha-images/people/people_42.jpg', 'captcha-images/people/people_43.jpg', 'captcha-images/people/people_44.jpg',
+                    'captcha-images/people/people_45.jpg'
+                ];
                 
-                // People images: try 1-50 and let error handling filter out missing ones
-                for (let i = 1; i <= 50; i++) {
-                    peopleImages.push(`captcha-images/people/people_${i}.jpg`);
-                }
+                const NON_PEOPLE_IMAGES_ASYNC = [
+                    'captcha-images/nonpeople/nonpeople_1.jpg', 'captcha-images/nonpeople/nonpeople_2.jpg', 'captcha-images/nonpeople/nonpeople_3.jpg',
+                    'captcha-images/nonpeople/nonpeople_4.jpg', 'captcha-images/nonpeople/nonpeople_5.jpg', 'captcha-images/nonpeople/nonpeople_6.jpg',
+                    'captcha-images/nonpeople/nonpeople_7.jpg', 'captcha-images/nonpeople/nonpeople_11.jpg', 'captcha-images/nonpeople/nonpeople_12.jpg',
+                    'captcha-images/nonpeople/nonpeople_14.jpg', 'captcha-images/nonpeople/nonpeople_15.jpg', 'captcha-images/nonpeople/nonpeople_16.jpg',
+                    'captcha-images/nonpeople/nonpeople_17.jpg', 'captcha-images/nonpeople/nonpeople_18.jpg', 'captcha-images/nonpeople/nonpeople_19.jpg',
+                    'captcha-images/nonpeople/nonpeople_20.jpg', 'captcha-images/nonpeople/nonpeople_21.jpg', 'captcha-images/nonpeople/nonpeople_22.jpg',
+                    'captcha-images/nonpeople/nonpeople_23.jpg', 'captcha-images/nonpeople/nonpeople_24.jpg', 'captcha-images/nonpeople/nonpeople_25.jpg',
+                    'captcha-images/nonpeople/nonpeople_27.jpg', 'captcha-images/nonpeople/nonpeople_28.jpg', 'captcha-images/nonpeople/nonpeople_29.jpg',
+                    'captcha-images/nonpeople/nonpeople_30.jpg', 'captcha-images/nonpeople/nonpeople_31.jpg', 'captcha-images/nonpeople/nonpeople_32.jpg',
+                    'captcha-images/nonpeople/nonpeople_33.jpg', 'captcha-images/nonpeople/nonpeople_34.jpg', 'captcha-images/nonpeople/nonpeople_35.jpg',
+                    'captcha-images/nonpeople/nonpeople_36.jpg', 'captcha-images/nonpeople/nonpeople_37.jpg', 'captcha-images/nonpeople/nonpeople_38.jpg',
+                    'captcha-images/nonpeople/nonpeople_40.jpg', 'captcha-images/nonpeople/nonpeople_41.jpg', 'captcha-images/nonpeople/nonpeople_43.jpg',
+                    'captcha-images/nonpeople/nonpeople_44.jpg', 'captcha-images/nonpeople/nonpeople_45.jpg', 'captcha-images/nonpeople/nonpeople_46.jpg',
+                    'captcha-images/nonpeople/nonpeople_47.jpg', 'captcha-images/nonpeople/nonpeople_49.jpg', 'captcha-images/nonpeople/nonpeople_53.jpg',
+                    'captcha-images/nonpeople/nonpeople_55.jpg', 'captcha-images/nonpeople/nonpeople_56.jpg', 'captcha-images/nonpeople/nonpeople_57.jpg',
+                    'captcha-images/nonpeople/nonpeople_59.jpg', 'captcha-images/nonpeople/nonpeople_60.jpg', 'captcha-images/nonpeople/nonpeople_61.jpg',
+                    'captcha-images/nonpeople/nonpeople_62.jpg', 'captcha-images/nonpeople/nonpeople_63.jpg', 'captcha-images/nonpeople/nonpeople_64.jpg',
+                    'captcha-images/nonpeople/nonpeople_66.jpg', 'captcha-images/nonpeople/nonpeople_67.jpg', 'captcha-images/nonpeople/nonpeople_68.jpg',
+                    'captcha-images/nonpeople/nonpeople_69.jpg', 'captcha-images/nonpeople/nonpeople_71.jpg', 'captcha-images/nonpeople/nonpeople_72.jpg',
+                    'captcha-images/nonpeople/nonpeople_73.jpg', 'captcha-images/nonpeople/nonpeople_74.jpg', 'captcha-images/nonpeople/nonpeople_77.jpg',
+                    'captcha-images/nonpeople/nonpeople_78.jpg', 'captcha-images/nonpeople/nonpeople_79.jpg', 'captcha-images/nonpeople/nonpeople_80.jpg',
+                    'captcha-images/nonpeople/nonpeople_81.jpg', 'captcha-images/nonpeople/nonpeople_82.jpg', 'captcha-images/nonpeople/nonpeople_83.jpg',
+                    'captcha-images/nonpeople/nonpeople_84.jpg', 'captcha-images/nonpeople/nonpeople_85.jpg', 'captcha-images/nonpeople/nonpeople_86.jpg',
+                    'captcha-images/nonpeople/nonpeople_88.jpg', 'captcha-images/nonpeople/nonpeople_90.jpg', 'captcha-images/nonpeople/nonpeople_91.jpg',
+                    'captcha-images/nonpeople/nonpeople_92.jpg', 'captcha-images/nonpeople/nonpeople_93.jpg', 'captcha-images/nonpeople/nonpeople_95.jpg',
+                    'captcha-images/nonpeople/nonpeople_96.jpg', 'captcha-images/nonpeople/nonpeople_98.jpg', 'captcha-images/nonpeople/nonpeople_99.jpg',
+                    'captcha-images/nonpeople/nonpeople_100.jpg', 'captcha-images/nonpeople/nonpeople_103.jpg', 'captcha-images/nonpeople/nonpeople_104.jpg',
+                    'captcha-images/nonpeople/nonpeople_105.jpg', 'captcha-images/nonpeople/nonpeople_106.jpg', 'captcha-images/nonpeople/nonpeople_108.jpg',
+                    'captcha-images/nonpeople/nonpeople_109.jpg', 'captcha-images/nonpeople/nonpeople_110.jpg', 'captcha-images/nonpeople/nonpeople_111.jpg',
+                    'captcha-images/nonpeople/nonpeople_112.jpg', 'captcha-images/nonpeople/nonpeople_113.jpg', 'captcha-images/nonpeople/nonpeople_115.jpg',
+                    'captcha-images/nonpeople/nonpeople_116.jpg', 'captcha-images/nonpeople/nonpeople_117.jpg', 'captcha-images/nonpeople/nonpeople_118.jpg',
+                    'captcha-images/nonpeople/nonpeople_120.jpg', 'captcha-images/nonpeople/nonpeople_121.jpg', 'captcha-images/nonpeople/nonpeople_124.jpg',
+                    'captcha-images/nonpeople/nonpeople_125.jpg', 'captcha-images/nonpeople/nonpeople_126.jpg', 'captcha-images/nonpeople/nonpeople_127.jpg',
+                    'captcha-images/nonpeople/nonpeople_129.jpg', 'captcha-images/nonpeople/nonpeople_130.jpg', 'captcha-images/nonpeople/nonpeople_131.jpg',
+                    'captcha-images/nonpeople/nonpeople_132.jpg', 'captcha-images/nonpeople/nonpeople_133.jpg', 'captcha-images/nonpeople/nonpeople_134.jpg',
+                    'captcha-images/nonpeople/nonpeople_135.jpg', 'captcha-images/nonpeople/nonpeople_136.jpg', 'captcha-images/nonpeople/nonpeople_137.jpg',
+                    'captcha-images/nonpeople/nonpeople_138.jpg', 'captcha-images/nonpeople/nonpeople_139.jpg', 'captcha-images/nonpeople/nonpeople_140.jpg',
+                    'captcha-images/nonpeople/nonpeople_141.jpg', 'captcha-images/nonpeople/nonpeople_142.jpg', 'captcha-images/nonpeople/nonpeople_143.jpg',
+                    'captcha-images/nonpeople/nonpeople_144.jpg', 'captcha-images/nonpeople/nonpeople_146.jpg', 'captcha-images/nonpeople/nonpeople_147.jpg',
+                    'captcha-images/nonpeople/nonpeople_148.jpg', 'captcha-images/nonpeople/nonpeople_149.jpg', 'captcha-images/nonpeople/nonpeople_150.jpg',
+                    'captcha-images/nonpeople/nonpeople_151.jpg', 'captcha-images/nonpeople/nonpeople_152.jpg', 'captcha-images/nonpeople/nonpeople_153.jpg',
+                    'captcha-images/nonpeople/nonpeople_154.jpg', 'captcha-images/nonpeople/nonpeople_155.jpg'
+                ];
                 
-                // Non-people images: try 1-200 and let error handling filter out missing ones
-                for (let i = 1; i <= 200; i++) {
-                    nonPeopleImages.push(`captcha-images/nonpeople/nonpeople_${i}.jpg`);
-                }
+                // Use static lists directly - no need to test
+                const validPeopleImages = PEOPLE_IMAGES_ASYNC;
+                const validNonPeopleImages = NON_PEOPLE_IMAGES_ASYNC;
                 
-                // Non-human images: try 1-50 for both .jpg and .jpeg in captcha-images
-                const nonHumanImages = [];
-                for (let i = 1; i <= 50; i++) {
-                    nonHumanImages.push(`captcha-images/nonhuman_${i}.jpg`);
-                    nonHumanImages.push(`captcha-images/nonhuman_${i}.jpeg`);
-                }
-                
-                // Test which images actually exist by attempting to load them
-                const testPromises = [...peopleImages, ...nonPeopleImages, ...nonHumanImages].map(url => {
-                    return new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = () => resolve({ url, success: true });
-                        img.onerror = () => resolve({ url, success: false });
-                        img.src = url;
-                    });
-                });
-                
-                const testResults = await Promise.all(testPromises);
-                
-                // Build arrays of only existing files
-                const validPeopleImages = testResults
-                    .filter(r => r.success && r.url.startsWith('captcha-images/people/'))
-                    .map(r => r.url);
-                
-                const validNonPeopleImages = testResults
-                    .filter(r => r.success && r.url.startsWith('captcha-images/nonpeople/'))
-                    .map(r => r.url);
-                
-                const validNonHumanImages = testResults
-                    .filter(r => r.success && r.url.startsWith('nonhumans/'))
-                    .map(r => r.url);
+                // Non-human images from nonhumans folder (use same list as main function)
+                const NON_HUMAN_IMAGES_ASYNC = [
+                    'nonhumans/-1x-1 (1).jpg',
+                    'nonhumans/-1x-1.jpg',
+                    'nonhumans/101880-irans_oberster_revolutionsfuehrer_ayatollah_khomeini.jpg',
+                    'nonhumans/1246092576.jpg',
+                    'nonhumans/230411-stephen-miller-jm-1201-e7c9ec.jpg',
+                    'nonhumans/96420520370dfb0d72f3e8626c1b76b1.jpg',
+                    'nonhumans/RTX3WBE3.jpg',
+                    'nonhumans/default.jpg',
+                    'nonhumans/download.jpg',
+                    'nonhumans/image-of-syrias-president-bashar-al-assad-during-a-wreath-laying-ceremony-at-the-tomb-of-the-unknown-soldier-by-the-kremlin-wall.jpg',
+                    'nonhumans/images.jpg',
+                    'nonhumans/kim-jong-un-person-of-year-2017-time-magazine-square.jpg',
+                    'nonhumans/prince_andrew_2019-11-20T183540Z_57980807_RC26FD92DQ0B_RTRMADP_3_BRITAIN-ROYALS-ANDREW-DUTIES.jpg',
+                    'nonhumans/GettyImages-1247180967-scaled.jpg',
+                    'nonhumans/GettyImages-488284394.jpg',
+                    'nonhumans/epstein-3-rt-gmh-251219_1766183679265_hpMain_4x3.jpg'
+                ];
+                const validNonHumanImages = NON_HUMAN_IMAGES_ASYNC;
                 
                 // Select exactly 3 images from people folder, 5 from non-people folder, and 1 from nonhumans folder
                 const numPeopleImages = 3; // 3 people images
