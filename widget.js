@@ -1050,7 +1050,12 @@
                     'captcha-images/nonpeople/nonpeople_165.jpg', 'captcha-images/nonpeople/nonpeople_166.jpg', 'captcha-images/nonpeople/nonpeople_167.jpg',
                     'captcha-images/nonpeople/nonpeople_168.jpg', 'captcha-images/nonpeople/nonpeople_169.jpg', 'captcha-images/nonpeople/nonpeople_170.jpg',
                     'captcha-images/nonpeople/nonpeople_171.jpg', 'captcha-images/nonpeople/nonpeople_172.jpg', 'captcha-images/nonpeople/nonpeople_173.jpg',
-                    'captcha-images/nonpeople/nonpeople_174.jpg', 'captcha-images/nonpeople/nonpeople_175.jpg'
+                    'captcha-images/nonpeople/nonpeople_174.jpg', 'captcha-images/nonpeople/nonpeople_175.jpg',
+                    'captcha-images/nonpeople/nonpeople_176.jpg', 'captcha-images/nonpeople/nonpeople_177.jpg', 'captcha-images/nonpeople/nonpeople_178.jpg',
+                    'captcha-images/nonpeople/nonpeople_179.jpg', 'captcha-images/nonpeople/nonpeople_180.jpg', 'captcha-images/nonpeople/nonpeople_181.jpg',
+                    'captcha-images/nonpeople/nonpeople_182.jpg', 'captcha-images/nonpeople/nonpeople_183.jpg', 'captcha-images/nonpeople/nonpeople_184.jpg',
+                    'captcha-images/nonpeople/nonpeople_185.jpg', 'captcha-images/nonpeople/nonpeople_186.jpg', 'captcha-images/nonpeople/nonpeople_187.jpg',
+                    'captcha-images/nonpeople/nonpeople_188.jpg', 'captcha-images/nonpeople/nonpeople_189.jpg', 'captcha-images/nonpeople/nonpeople_190.jpg'
                 ];
                 
                 // Validate we have enough images
