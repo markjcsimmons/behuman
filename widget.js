@@ -1088,9 +1088,19 @@
                 
                 console.log(`Selecting ${numPeopleImages} from people folder, ${numNonPeopleImages} from non-people folder, 1 from nonhumans folder`);
                 
-                // Shuffle and select random images from each folder
-                const shuffledPeople = [...PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
-                const shuffledNonPeople = [...NON_PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                // Fisher-Yates shuffle function for truly random selection
+                function shuffleArray(array) {
+                    const shuffled = [...array];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    return shuffled;
+                }
+                
+                // Randomly select images from each folder using proper shuffle
+                const shuffledPeople = shuffleArray(PEOPLE_IMAGES).slice(0, numPeopleImages);
+                const shuffledNonPeople = shuffleArray(NON_PEOPLE_IMAGES).slice(0, numNonPeopleImages);
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
                 
                 console.log(`Selected ${shuffledPeople.length} people images:`, shuffledPeople.map(p => p.split('/').pop()));
@@ -1100,8 +1110,8 @@
                 // Combine all images (3 people + 5 non-people + 1 non-human = 9 total)
                 const selectedImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage];
                 
-                // Shuffle the final array
-                const shuffledFinalImages = selectedImages.sort(() => 0.5 - Math.random());
+                // Shuffle the final array using proper Fisher-Yates shuffle
+                const shuffledFinalImages = shuffleArray(selectedImages);
                 
                 // Preload all selected images with timeout and error handling
                 const imagePromises = shuffledFinalImages.map(url => {
@@ -1298,15 +1308,25 @@
                 const numPeopleImages = 3; // 3 people images
                 const numNonPeopleImages = 5; // 5 non-people images
                 
-                // Shuffle and select random images
-                const shuffledPeople = [...peopleImages].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
-                const shuffledNonPeople = [...nonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                // Fisher-Yates shuffle function for truly random selection
+                function shuffleArray(array) {
+                    const shuffled = [...array];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    return shuffled;
+                }
+                
+                // Shuffle and select random images using proper Fisher-Yates shuffle
+                const shuffledPeople = shuffleArray(peopleImages).slice(0, numPeopleImages);
+                const shuffledNonPeople = shuffleArray(nonPeopleImages).slice(0, numNonPeopleImages);
                 
                 // Add one random non-human image
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
                 
-                // Combine and shuffle all images
-                const allImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage].sort(() => 0.5 - Math.random());
+                // Combine and shuffle all images using proper Fisher-Yates shuffle
+                const allImages = shuffleArray([...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage]);
                 
                 // Track which indices have people, non-people, and non-human images
                 this.captchaCorrectImages = [];

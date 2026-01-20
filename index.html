@@ -1026,9 +1026,19 @@
                 
                 console.log(`Selecting ${numPeopleImages} from people folder, ${numNonPeopleImages} from non-people folder, 1 from nonhumans folder`);
                 
-                // Shuffle and select random images from each folder
-                const shuffledPeople = [...PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numPeopleImages);
-                const shuffledNonPeople = [...NON_PEOPLE_IMAGES].sort(() => 0.5 - Math.random()).slice(0, numNonPeopleImages);
+                // Fisher-Yates shuffle function for truly random selection
+                function shuffleArray(array) {
+                    const shuffled = [...array];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    return shuffled;
+                }
+                
+                // Randomly select images from each folder using proper shuffle
+                const shuffledPeople = shuffleArray(PEOPLE_IMAGES).slice(0, numPeopleImages);
+                const shuffledNonPeople = shuffleArray(NON_PEOPLE_IMAGES).slice(0, numNonPeopleImages);
                 const randomNonHumanImage = NON_HUMAN_IMAGES[Math.floor(Math.random() * NON_HUMAN_IMAGES.length)];
                 
                 console.log(`Selected ${shuffledPeople.length} people images:`, shuffledPeople.map(p => p.split('/').pop()));
@@ -1038,8 +1048,8 @@
                 // Combine all images (3 people + 5 non-people + 1 non-human = 9 total)
                 const selectedImages = [...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage];
                 
-                // Shuffle the final array
-                const shuffledFinalImages = selectedImages.sort(() => 0.5 - Math.random());
+                // Shuffle the final array using proper Fisher-Yates shuffle
+                const shuffledFinalImages = shuffleArray(selectedImages);
                 
                 // Preload all selected images with timeout and error handling
                 // Use shorter timeout for faster failure detection
@@ -1399,9 +1409,19 @@
                 const numPeopleImages = 3; // 3 people images
                 const numNonPeopleImages = 5; // 5 non-people images
                 
-                // Shuffle and select random images from only existing files
-                const shuffledPeople = [...validPeopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numPeopleImages, validPeopleImages.length));
-                const shuffledNonPeople = [...validNonPeopleImages].sort(() => 0.5 - Math.random()).slice(0, Math.min(numNonPeopleImages, validNonPeopleImages.length));
+                // Fisher-Yates shuffle function for truly random selection
+                function shuffleArray(array) {
+                    const shuffled = [...array];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    return shuffled;
+                }
+                
+                // Shuffle and select random images from only existing files using proper shuffle
+                const shuffledPeople = shuffleArray(validPeopleImages).slice(0, Math.min(numPeopleImages, validPeopleImages.length));
+                const shuffledNonPeople = shuffleArray(validNonPeopleImages).slice(0, Math.min(numNonPeopleImages, validNonPeopleImages.length));
                 
                 // Add one random non-human image from captcha-images folder
                 const randomNonHumanImage = validNonHumanImages.length > 0 
@@ -1417,8 +1437,8 @@
                 // Remove any duplicates (shouldn't happen, but be safe)
                 const uniqueImages = [...new Set(allImages)];
                 
-                // Shuffle the unique images
-                const shuffledAllImages = uniqueImages.sort(() => 0.5 - Math.random());
+                // Shuffle the unique images using proper Fisher-Yates shuffle
+                const shuffledAllImages = shuffleArray(uniqueImages);
                 
                 // Debug: Log what we're about to display
                 console.log('Async CAPTCHA images:', {
