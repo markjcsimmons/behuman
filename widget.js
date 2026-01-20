@@ -1060,7 +1060,15 @@
                     'captcha-images/nonpeople/nonpeople_194.jpg', 'captcha-images/nonpeople/nonpeople_195.jpg', 'captcha-images/nonpeople/nonpeople_196.jpg',
                     'captcha-images/nonpeople/nonpeople_197.jpg', 'captcha-images/nonpeople/nonpeople_198.jpg', 'captcha-images/nonpeople/nonpeople_199.jpg',
                     'captcha-images/nonpeople/nonpeople_200.jpg', 'captcha-images/nonpeople/nonpeople_201.jpg', 'captcha-images/nonpeople/nonpeople_202.jpg',
-                    'captcha-images/nonpeople/nonpeople_203.jpg', 'captcha-images/nonpeople/nonpeople_204.jpg', 'captcha-images/nonpeople/nonpeople_205.jpg'
+                    'captcha-images/nonpeople/nonpeople_203.jpg', 'captcha-images/nonpeople/nonpeople_204.jpg', 'captcha-images/nonpeople/nonpeople_205.jpg',
+                    'captcha-images/nonpeople/nonpeople_206.jpg', 'captcha-images/nonpeople/nonpeople_207.jpg', 'captcha-images/nonpeople/nonpeople_208.jpg',
+                    'captcha-images/nonpeople/nonpeople_209.jpg', 'captcha-images/nonpeople/nonpeople_210.jpg', 'captcha-images/nonpeople/nonpeople_211.jpg',
+                    'captcha-images/nonpeople/nonpeople_212.jpg', 'captcha-images/nonpeople/nonpeople_213.jpg', 'captcha-images/nonpeople/nonpeople_214.jpg',
+                    'captcha-images/nonpeople/nonpeople_215.jpg', 'captcha-images/nonpeople/nonpeople_216.jpg', 'captcha-images/nonpeople/nonpeople_217.jpg',
+                    'captcha-images/nonpeople/nonpeople_218.jpg', 'captcha-images/nonpeople/nonpeople_219.jpg', 'captcha-images/nonpeople/nonpeople_220.jpg',
+                    'captcha-images/nonpeople/nonpeople_221.jpg', 'captcha-images/nonpeople/nonpeople_222.jpg', 'captcha-images/nonpeople/nonpeople_223.jpg',
+                    'captcha-images/nonpeople/nonpeople_224.jpg', 'captcha-images/nonpeople/nonpeople_225.jpg', 'captcha-images/nonpeople/nonpeople_226.jpg',
+                    'captcha-images/nonpeople/nonpeople_227.jpg'
                 ];
                 
                 // Validate we have enough images
