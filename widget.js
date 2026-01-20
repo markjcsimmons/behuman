@@ -982,7 +982,8 @@
                     'captcha-images/people/people_36.jpg', 'captcha-images/people/people_37.jpg', 'captcha-images/people/people_38.jpg',
                     'captcha-images/people/people_39.jpg', 'captcha-images/people/people_40.jpg', 'captcha-images/people/people_41.jpg',
                     'captcha-images/people/people_42.jpg', 'captcha-images/people/people_43.jpg', 'captcha-images/people/people_44.jpg',
-                    'captcha-images/people/people_45.jpg'
+                    'captcha-images/people/people_45.jpg', 'captcha-images/people/people_46.jpg', 'captcha-images/people/people_47.jpg',
+                    'captcha-images/people/people_48.jpg', 'captcha-images/people/people_49.jpg', 'captcha-images/people/people_50.jpg'
                 ];
                 
                 const NON_PEOPLE_IMAGES = [
