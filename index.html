@@ -580,13 +580,17 @@
     </div>
 
     <script>
-        var ASSET_BASE = (window.location && window.location.protocol === 'file:') ? 'https://markjcsimmons.github.io/behuman' : '';
+        var ASSET_BASE = 'https://markjcsimmons.github.io/behuman';
+        if (window.location && window.location.protocol !== 'file:' && window.location.origin === 'https://markjcsimmons.github.io') ASSET_BASE = '';
         function assetUrl(p) { return (ASSET_BASE ? ASSET_BASE + '/' : '') + p; }
-        function encodeImageSrc(p) { if (!p) return p; return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
+        function encodeImageSrc(p) { if (!p || typeof p !== 'string') return ''; return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
         function showStatements() {
-            document.getElementById('initial-screen').style.display = 'none';
-            document.getElementById('statements-screen').style.display = 'block';
-            document.getElementById('result-screen').style.display = 'none';
+            const initialScreen = document.getElementById('initial-screen');
+            const statementsScreen = document.getElementById('statements-screen');
+            const resultScreen = document.getElementById('result-screen');
+            if (initialScreen) initialScreen.style.display = 'none';
+            if (statementsScreen) statementsScreen.style.display = 'block';
+            if (resultScreen) resultScreen.style.display = 'none';
             
             // Every time user clicks "Click here to begin": start a fresh preload from the 3 folders.
             // Low-res images should complete within 2s; Submit will wait if needed.
@@ -605,7 +609,7 @@
                 document.getElementById('stmt7')
             ];
 
-            const allChecked = checkboxes.every(cb => cb.checked);
+            const allChecked = checkboxes.filter(Boolean).every(cb => cb.checked);
             
             if (allChecked) {
                 // Wait for images to be loaded before showing CAPTCHA screen
@@ -626,9 +630,9 @@
                         } else {
                             // Wait for images to finish loading (with timeout)
                             let waitCount = 0;
-                            const maxWait = 20; // 2 seconds max (low-res preload)
+                            const maxWait = 40; // 2s max at 50ms per tick (low-res preload ~2s)
                             while (preloadedCaptchaData && !preloadedCaptchaData.loaded && waitCount < maxWait) {
-                                await new Promise(resolve => setTimeout(resolve, 100));
+                                await new Promise(resolve => setTimeout(resolve, 50));
                                 waitCount++;
                             }
                             if (!preloadedCaptchaData || !preloadedCaptchaData.loaded) {
@@ -658,11 +662,7 @@
                     }
                 }
                 
-                // Ensure images are fully preloaded before showing CAPTCHA
-                // Add a small additional delay to ensure DOM rendering is complete
-                await new Promise(resolve => setTimeout(resolve, 200));
-                
-                // Show CAPTCHA screen (even if preload failed, show it and use fallback)
+                // Show CAPTCHA screen immediately (even if preload failed, show it and use fallback)
                 console.log('Showing CAPTCHA screen...');
                 const statementsScreen = document.getElementById('statements-screen');
                 const captchaScreen = document.getElementById('captcha-screen');
@@ -677,9 +677,6 @@
                 // Load images into grid
                 console.log('Calling loadCaptchaImages()...');
                 loadCaptchaImages();
-                
-                // Add a small delay to ensure grid is fully rendered before continuing
-                await new Promise(resolve => setTimeout(resolve, 100));
                 // Next preload happens on next "Click here to begin" only.
             } else {
                 // Show robot screen
@@ -694,28 +691,30 @@
             const tryAgainContainer = document.getElementById('try-again-container');
             const shareContainer = document.getElementById('share-container');
 
-            document.getElementById('statements-screen').style.display = 'none';
-            document.getElementById('captcha-screen').style.display = 'none';
-            resultScreen.style.display = 'block';
+            const statementsScreen = document.getElementById('statements-screen');
+            const captchaScreen = document.getElementById('captcha-screen');
+            if (statementsScreen) statementsScreen.style.display = 'none';
+            if (captchaScreen) captchaScreen.style.display = 'none';
+            if (resultScreen) resultScreen.style.display = 'block';
 
             if (isVerified) {
                 isCaptchaFailure = false;
-                resultScreen.className = 'result verified';
-                resultIcon.textContent = '✓';
-                resultText.textContent = 'Verified Human';
-                tryAgainContainer.style.display = 'none';
-                shareContainer.style.display = 'block';
+                if (resultScreen) resultScreen.className = 'result verified';
+                if (resultIcon) resultIcon.textContent = '✓';
+                if (resultText) resultText.textContent = 'Verified Human';
+                if (tryAgainContainer) tryAgainContainer.style.display = 'none';
+                if (shareContainer) shareContainer.style.display = 'block';
             } else {
                 isCaptchaFailure = isCaptchaFailureFlag;
-                resultScreen.className = 'result robot';
-                resultIcon.textContent = '✗';
+                if (resultScreen) resultScreen.className = 'result robot';
+                if (resultIcon) resultIcon.textContent = '✗';
                 if (isCaptchaFailureFlag) {
-                    resultText.textContent = 'Oops. Looks like you\'re a bot.';
+                    if (resultText) resultText.textContent = 'Oops. Looks like you\'re a bot.';
                 } else {
-                    resultText.textContent = 'Sorry, you must be a robot.';
+                    if (resultText) resultText.textContent = 'Sorry, you must be a robot.';
                 }
-                tryAgainContainer.style.display = 'block';
-                shareContainer.style.display = 'none';
+                if (tryAgainContainer) tryAgainContainer.style.display = 'block';
+                if (shareContainer) shareContainer.style.display = 'none';
             }
         }
 
@@ -731,7 +730,7 @@
                 document.getElementById('stmt7')
             ];
             
-            checkboxes.forEach(cb => cb.checked = false);
+            checkboxes.forEach(cb => { if (cb) cb.checked = false; });
 
             // Reset ledger form if it exists
             const ledgerForm = document.getElementById('ledger-form');
@@ -764,10 +763,14 @@
             }
 
             // Show initial screen and hide others
-            document.getElementById('initial-screen').style.display = 'block';
-            document.getElementById('statements-screen').style.display = 'none';
-            document.getElementById('captcha-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'none';
+            const initialScreen = document.getElementById('initial-screen');
+            const statementsScreen = document.getElementById('statements-screen');
+            const captchaScreen = document.getElementById('captcha-screen');
+            const resultScreen = document.getElementById('result-screen');
+            if (initialScreen) initialScreen.style.display = 'block';
+            if (statementsScreen) statementsScreen.style.display = 'none';
+            if (captchaScreen) captchaScreen.style.display = 'none';
+            if (resultScreen) resultScreen.style.display = 'none';
             // Note: ledger-screen was removed, so don't try to hide it
             // Preload happens only on "Click here to begin" for a predictable 2s window.
         }
@@ -785,11 +788,6 @@
         let preloadedCaptchaData = null; // Store preloaded image data
         let detectionModel = null; // TensorFlow.js COCO-SSD model
         let isCaptchaFailure = false; // Track if failure is from CAPTCHA
-        
-        // Pexels API Configuration
-        const PEXELS_API_KEY = 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh';
-        
-        // Non-human images will be loaded from captcha-images folder dynamically
         
         // Load TensorFlow.js detection model (load early for better performance)
         async function loadDetectionModel() {
@@ -810,10 +808,8 @@
             return detectionModel;
         }
         
-        // Preload detection model when page loads
-        window.addEventListener('load', () => {
-            loadDetectionModel();
-        });
+        // Defer model load until first CAPTCHA verification (cocoSsd.load() blocks main thread
+        // for several seconds; loading on window load made statements-screen checkboxes unclickable).
         
         // Detect people in an image
         async function detectPeopleInImage(imageUrl) {
@@ -858,9 +854,9 @@
             if (preloadedCaptchaData && !preloadedCaptchaData.loaded) {
                 console.log('Images already loading, waiting...');
                 let waitCount = 0;
-                const maxWait = 20; // 2 seconds max (low-res images)
+                const maxWait = 40; // 2s at 50ms per tick
                 while (!preloadedCaptchaData.loaded && preloadedCaptchaData !== null && waitCount < maxWait) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 50));
                     waitCount++;
                 }
                 if (preloadedCaptchaData && preloadedCaptchaData.loaded) {
@@ -878,7 +874,10 @@
             
             try {
                 // Load image lists from manifest (generated by: node scripts/update-captcha-manifest.js)
-                const manifestRes = await fetch(assetUrl('captcha-images/manifest.json'));
+                var c = new AbortController();
+                var t = setTimeout(function() { c.abort(); }, 10000);
+                var manifestRes = await fetch(assetUrl('captcha-images/manifest.json?v=5'), { cache: 'no-cache', signal: c.signal });
+                clearTimeout(t);
                 if (!manifestRes.ok) throw new Error('Could not load image manifest (run: node scripts/update-captcha-manifest.js)');
                 const manifest = await manifestRes.json();
                 const PEOPLE_IMAGES = manifest.people || [];
@@ -933,9 +932,9 @@
                     return new Promise((resolve) => {
                         const img = new Image();
                         const timeout = setTimeout(() => {
-                            console.warn('Image load timeout (2s):', url);
+                            console.warn('Image load timeout (1.5s):', url);
                             resolve({ url, success: false });
-                        }, 2000); // 2 second timeout (reduced from 5s)
+                        }, 1500); // 1.5s for low-res; 9 in parallel => preload typically under 2s
                         img.onload = () => {
                             clearTimeout(timeout);
                             resolve({ url, success: true });
@@ -1081,6 +1080,13 @@
         // Render preloaded CAPTCHA images
         function loadCaptchaImages() {
             const grid = document.getElementById('captcha-grid');
+            if (!grid) { console.error('CAPTCHA grid not found'); return; }
+            const controls = document.querySelector('.captcha-controls');
+            const verifying = document.getElementById('captcha-verifying');
+            // Restore visibility after Submit had hidden grid/controls; ensures CAPTCHA loads after refresh/try-again
+            if (grid) grid.style.display = '';
+            if (controls) controls.style.display = '';
+            if (verifying) verifying.classList.remove('active');
             grid.innerHTML = '';
             captchaSelectedImages = [];
             
@@ -1116,7 +1122,12 @@
                     };
                     
                     const img = document.createElement('img');
-                    img.src = assetUrl(encodeImageSrc(url));
+                    if (!url || typeof url !== 'string') {
+                        console.warn('Skipping invalid url:', url);
+                        img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23cccccc"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666666" font-family="sans-serif" font-size="14"%3EImage%3C/text%3E%3C/svg%3E';
+                    } else {
+                        img.src = assetUrl(encodeImageSrc(url));
+                    }
                     img.alt = 'CAPTCHA image ' + (index + 1);
                     
                     img.onerror = function() {
@@ -1144,20 +1155,25 @@
         // Fallback async loading (if preload didn't happen)
         async function loadCaptchaImagesAsync() {
             const grid = document.getElementById('captcha-grid');
+            if (!grid) { console.error('CAPTCHA grid not found'); return; }
             grid.innerHTML = '';
             captchaSelectedImages = [];
-            
-            // Show loading state
             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             
             try {
-                // Load image lists from manifest (same as preload)
-                const manifestRes = await fetch(assetUrl('captcha-images/manifest.json'));
+                var c = new AbortController();
+                var t = setTimeout(function() { c.abort(); }, 10000);
+                var manifestRes = await fetch(assetUrl('captcha-images/manifest.json?v=5'), { cache: 'no-cache', signal: c.signal });
+                clearTimeout(t);
                 if (!manifestRes.ok) throw new Error('Could not load image manifest');
                 const manifest = await manifestRes.json();
                 const validPeopleImages = manifest.people || [];
                 const validNonPeopleImages = manifest.nonpeople || [];
                 const validNonHumanImages = manifest.nonhumans || [];
+
+                if (validPeopleImages.length < 3 || validNonPeopleImages.length < 5 || validNonHumanImages.length < 1) {
+                    throw new Error('Manifest incomplete: need at least 3 people, 5 nonpeople, 1 nonhuman. Got people=' + validPeopleImages.length + ', nonpeople=' + validNonPeopleImages.length + ', nonhumans=' + validNonHumanImages.length);
+                }
 
                 // Select exactly 3 images from people folder, 5 from non-people folder, and 1 from nonhumans folder
                 const numPeopleImages = 3; // 3 people images
@@ -1242,7 +1258,12 @@
                     };
                     
                     const img = document.createElement('img');
-                    img.src = assetUrl(encodeImageSrc(url));
+                    if (!url || typeof url !== 'string') {
+                        console.warn('Skipping invalid url:', url);
+                        img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23cccccc"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666666" font-family="sans-serif" font-size="14"%3EImage%3C/text%3E%3C/svg%3E';
+                    } else {
+                        img.src = assetUrl(encodeImageSrc(url));
+                    }
                     img.alt = 'CAPTCHA image ' + (index + 1);
                     img.loading = 'lazy';
                     img.onerror = function() {
@@ -1264,6 +1285,7 @@
 
         function toggleCaptchaImage(index) {
             const container = document.querySelector(`.captcha-image-container[data-index="${index}"]`);
+            if (!container) return;
             const isSelected = captchaSelectedImages.includes(index);
             
             if (isSelected) {
@@ -1399,11 +1421,16 @@
             captchaNonPeopleImages = [];
             captchaNonHumanImages = [];
             var grid = document.getElementById('captcha-grid');
+            var controls = document.querySelector('.captcha-controls');
+            var verifying = document.getElementById('captcha-verifying');
+            if (grid) grid.style.display = '';
+            if (controls) controls.style.display = '';
+            if (verifying) verifying.classList.remove('active');
             if (grid) grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             document.getElementById('captcha-screen').style.display = 'block';
             // Preload, then render; on failure or timeout, loadCaptchaImages() uses async fallback
             var p = preloadCaptchaImages();
-            var timeout = new Promise(function(_, reject) { setTimeout(function() { reject(new Error('timeout')); }, 8000); });
+            var timeout = new Promise(function(_, reject) { setTimeout(function() { reject(new Error('timeout')); }, 5000); });
             Promise.race([p, timeout]).then(function() { loadCaptchaImages(); }).catch(function() { loadCaptchaImages(); });
         }
 

@@ -1,9 +1,9 @@
 (function() {
     'use strict';
     var BehumanBase = '';
-    try { var s = document.currentScript; if (s && s.src) BehumanBase = s.src.replace(/\/[^/]*$/, ''); if (BehumanBase && BehumanBase.indexOf('file:') === 0) BehumanBase = 'https://markjcsimmons.github.io/behuman'; } catch (e) {}
-    function encodeImageSrc(p) { if (!p) return p; return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
-    function assetUrl(p) { return (BehumanBase ? BehumanBase + '/' : '') + p; }
+    try { var s = document.currentScript; if (s && s.src) { BehumanBase = s.src.replace(/\/[^/]*$/, ''); if (BehumanBase && BehumanBase.indexOf('file:') === 0) BehumanBase = 'https://markjcsimmons.github.io/behuman'; } } catch (e) {}
+    function encodeImageSrc(p) { if (!p || typeof p !== 'string') return ''; return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
+    function assetUrl(p) { var b = BehumanBase || 'https://markjcsimmons.github.io/behuman'; return (b ? b + '/' : '') + p; }
     // Namespace to avoid conflicts
     const BeHuman = {
         initialized: false,
@@ -687,9 +687,12 @@
         
         // Show statements screen
         showStatements: function() {
-            document.getElementById('behuman-initial-screen').style.display = 'none';
-            document.getElementById('behuman-statements-screen').style.display = 'block';
-            document.getElementById('behuman-result-screen').style.display = 'none';
+            const initialScreen = document.getElementById('behuman-initial-screen');
+            const statementsScreen = document.getElementById('behuman-statements-screen');
+            const resultScreen = document.getElementById('behuman-result-screen');
+            if (initialScreen) initialScreen.style.display = 'none';
+            if (statementsScreen) statementsScreen.style.display = 'block';
+            if (resultScreen) resultScreen.style.display = 'none';
             
             // Every time user clicks "Click here to begin": start a fresh preload from the 3 folders.
             // Low-res images should complete within 2s; Submit will wait if needed.
@@ -704,7 +707,7 @@
                 checkboxes.push(document.getElementById('behuman-stmt' + i));
             }
 
-            const allChecked = checkboxes.every(cb => cb.checked);
+            const allChecked = checkboxes.filter(Boolean).every(cb => cb.checked);
             
             if (allChecked) {
                 // Wait for images to be loaded before showing CAPTCHA screen
@@ -722,9 +725,9 @@
                         await this.preloadCaptchaImages();
                     } else {
                         let waitCount = 0;
-                        const maxWait = 20; // 2s
+                        const maxWait = 40; // 2s at 50ms per tick (low-res preload ~2s)
                         while (this.preloadedCaptchaData && !this.preloadedCaptchaData.loaded && waitCount < maxWait) {
-                            await new Promise(resolve => setTimeout(resolve, 100));
+                            await new Promise(resolve => setTimeout(resolve, 50));
                             waitCount++;
                         }
                         if (!this.preloadedCaptchaData || !this.preloadedCaptchaData.loaded) {
@@ -740,8 +743,10 @@
                 }
                 
                 // Show CAPTCHA screen
-                document.getElementById('behuman-statements-screen').style.display = 'none';
-                document.getElementById('behuman-captcha-screen').style.display = 'block';
+                const statementsScreen = document.getElementById('behuman-statements-screen');
+                const captchaScreen = document.getElementById('behuman-captcha-screen');
+                if (statementsScreen) statementsScreen.style.display = 'none';
+                if (captchaScreen) captchaScreen.style.display = 'block';
                 this.loadCaptchaImages();
             } else {
                 // Show robot screen
@@ -757,26 +762,28 @@
             const tryAgainContainer = document.getElementById('behuman-try-again-container');
             const shareContainer = document.getElementById('behuman-share-container');
             
-            document.getElementById('behuman-statements-screen').style.display = 'none';
-            document.getElementById('behuman-captcha-screen').style.display = 'none';
-            resultScreen.style.display = 'block';
+            const statementsScreen = document.getElementById('behuman-statements-screen');
+            const captchaScreen = document.getElementById('behuman-captcha-screen');
+            if (statementsScreen) statementsScreen.style.display = 'none';
+            if (captchaScreen) captchaScreen.style.display = 'none';
+            if (resultScreen) resultScreen.style.display = 'block';
             
             if (isVerified) {
-                resultScreen.className = 'verified';
-                resultIcon.textContent = '✓';
-                resultText.textContent = 'Verified Human';
-                tryAgainContainer.style.display = 'none';
-                shareContainer.style.display = 'block';
+                if (resultScreen) resultScreen.className = 'verified';
+                if (resultIcon) resultIcon.textContent = '✓';
+                if (resultText) resultText.textContent = 'Verified Human';
+                if (tryAgainContainer) tryAgainContainer.style.display = 'none';
+                if (shareContainer) shareContainer.style.display = 'block';
             } else {
-                resultScreen.className = 'robot';
-                resultIcon.textContent = '✗';
+                if (resultScreen) resultScreen.className = 'robot';
+                if (resultIcon) resultIcon.textContent = '✗';
                 if (isCaptchaFailureFlag) {
-                    resultText.textContent = 'Oops. Looks like you\'re a bot.';
+                    if (resultText) resultText.textContent = 'Oops. Looks like you\'re a bot.';
                 } else {
-                    resultText.textContent = 'Sorry, you must be a robot.';
+                    if (resultText) resultText.textContent = 'Sorry, you must be a robot.';
                 }
-                tryAgainContainer.style.display = 'block';
-                shareContainer.style.display = 'none';
+                if (tryAgainContainer) tryAgainContainer.style.display = 'block';
+                if (shareContainer) shareContainer.style.display = 'none';
             }
         },
         
@@ -893,9 +900,6 @@
         preloadedCaptchaData: null, // Store preloaded image data
         detectionModel: null, // TensorFlow.js COCO-SSD model
         
-        // Pexels API Configuration
-        pexelsApiKey: 'QtGASQFn9Ah3Rw1pO58DOQ7QGGwdEv9DXPTupysI6mvI1vH8wgZ0BQyh',
-        
         // Non-human images from local folder (16 actual files, all optimized to low-res)
         nonHumanImages: [
             'nonhumans/-1x-1 (1).jpg',
@@ -974,9 +978,9 @@
             }
             if (this.preloadedCaptchaData && !this.preloadedCaptchaData.loaded) {
                 let waitCount = 0;
-                const maxWait = 20; // 2s
+                const maxWait = 40; // 2s at 50ms per tick
                 while (this.preloadedCaptchaData && !this.preloadedCaptchaData.loaded && waitCount < maxWait) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 50));
                     waitCount++;
                 }
                 if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded) return;
@@ -984,8 +988,10 @@
             }
             this.preloadedCaptchaData = { loaded: false };
             try {
-                // Load image lists from manifest (generated by: node scripts/update-captcha-manifest.js)
-                const manifestRes = await fetch(assetUrl('captcha-images/manifest.json'));
+                var c = new AbortController();
+                var t = setTimeout(function() { c.abort(); }, 10000);
+                var manifestRes = await fetch(assetUrl('captcha-images/manifest.json?v=5'), { cache: 'no-cache', signal: c.signal });
+                clearTimeout(t);
                 if (!manifestRes.ok) throw new Error('Could not load image manifest (run: node scripts/update-captcha-manifest.js)');
                 const manifest = await manifestRes.json();
                 const PEOPLE_IMAGES = manifest.people || [];
@@ -1039,9 +1045,9 @@
                     return new Promise((resolve) => {
                         const img = new Image();
                         const timeout = setTimeout(() => {
-                            console.warn('Image load timeout (2s):', url);
+                            console.warn('Image load timeout (1.5s):', url);
                             resolve({ url, success: false });
-                        }, 2000); // 2s for low-res
+                        }, 1500); // 1.5s for low-res; 9 in parallel => preload typically under 2s
                         img.onload = () => {
                             clearTimeout(timeout);
                             resolve({ url, success: true });
@@ -1167,11 +1173,18 @@
         // Render preloaded CAPTCHA images
         loadCaptchaImages: function() {
             const grid = document.getElementById('behuman-captcha-grid');
+            if (!grid) { console.error('BeHuman: captcha grid not found'); return; }
+            const controls = document.querySelector('.behuman-captcha-controls');
+            const verifying = document.getElementById('behuman-captcha-verifying');
+            // Restore visibility after Submit had hidden grid/controls; ensures CAPTCHA loads after refresh/try-again
+            if (grid) grid.style.display = '';
+            if (controls) controls.style.display = '';
+            if (verifying) verifying.classList.remove('active');
             grid.innerHTML = '';
             this.captchaSelectedImages = [];
             
-            // If we have preloaded data and it's loaded, use it
-            if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded) {
+            // If we have preloaded data with images, use it; else fallback to async load
+            if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded && this.preloadedCaptchaData.images && this.preloadedCaptchaData.images.length > 0) {
                 this.captchaCorrectImages = this.preloadedCaptchaData.correctImages;
                 this.captchaNonPeopleImages = this.preloadedCaptchaData.nonPeopleIndices || [];
                 this.captchaNonHumanImages = this.preloadedCaptchaData.nonHumanIndices || [];
@@ -1188,7 +1201,12 @@
                     };
                     
                     const img = document.createElement('img');
-                    img.src = assetUrl(encodeImageSrc(url));
+                    if (!url || typeof url !== 'string') {
+                        console.warn('Skipping invalid url:', url);
+                        img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23cccccc"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666666" font-family="sans-serif" font-size="14"%3EImage%3C/text%3E%3C/svg%3E';
+                    } else {
+                        img.src = assetUrl(encodeImageSrc(url));
+                    }
                     img.alt = 'CAPTCHA image ' + (index + 1);
                     img.loading = 'lazy';
                     img.onerror = function() {
@@ -1211,20 +1229,25 @@
         // Fallback async loading (if preload didn't happen)
         loadCaptchaImagesAsync: async function() {
             const grid = document.getElementById('behuman-captcha-grid');
+            if (!grid) { console.error('BeHuman: captcha grid not found'); return; }
             grid.innerHTML = '';
             this.captchaSelectedImages = [];
-            
-            // Show loading state
             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             
             try {
-                // Load image lists from manifest (same as preload)
-                const manifestRes = await fetch(assetUrl('captcha-images/manifest.json'));
+                var c = new AbortController();
+                var t = setTimeout(function() { c.abort(); }, 10000);
+                var manifestRes = await fetch(assetUrl('captcha-images/manifest.json?v=5'), { cache: 'no-cache', signal: c.signal });
+                clearTimeout(t);
                 if (!manifestRes.ok) throw new Error('Could not load image manifest');
                 const manifest = await manifestRes.json();
                 const PEOPLE_IMAGES = manifest.people || [];
                 const NON_PEOPLE_IMAGES = manifest.nonpeople || [];
                 this.nonHumanImages = manifest.nonhumans || [];
+
+                if (PEOPLE_IMAGES.length < 3 || NON_PEOPLE_IMAGES.length < 5 || !this.nonHumanImages.length) {
+                    throw new Error('Manifest incomplete: need at least 3 people, 5 nonpeople, 1 nonhuman. Got people=' + PEOPLE_IMAGES.length + ', nonpeople=' + NON_PEOPLE_IMAGES.length + ', nonhumans=' + (this.nonHumanImages ? this.nonHumanImages.length : 0));
+                }
 
                 const numPeopleImages = 3;
                 const numNonPeopleImages = 5;
@@ -1239,10 +1262,8 @@
                 const shuffledPeople = shuffleArray(PEOPLE_IMAGES).slice(0, numPeopleImages);
                 const shuffledNonPeople = shuffleArray(NON_PEOPLE_IMAGES).slice(0, numNonPeopleImages);
                 
-                // Add one random non-human image
+                // Add one random non-human image (validated above: nonHumanImages.length >= 1)
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
-                
-                // Combine and shuffle all images using proper Fisher-Yates shuffle
                 const allImages = shuffleArray([...shuffledPeople, ...shuffledNonPeople, randomNonHumanImage]);
                 
                 // Track which indices have people, non-people, and non-human images
@@ -1277,7 +1298,12 @@
                     };
                     
                     const img = document.createElement('img');
-                    img.src = assetUrl(encodeImageSrc(url));
+                    if (!url || typeof url !== 'string') {
+                        console.warn('Skipping invalid url:', url);
+                        img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23cccccc"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666666" font-family="sans-serif" font-size="14"%3EImage%3C/text%3E%3C/svg%3E';
+                    } else {
+                        img.src = assetUrl(encodeImageSrc(url));
+                    }
                     img.alt = 'CAPTCHA image ' + (index + 1);
                     img.loading = 'lazy';
                     img.onerror = function() {
@@ -1299,6 +1325,7 @@
         
         toggleCaptchaImage: function(index) {
             const container = document.querySelector(`.behuman-captcha-image-container[data-index="${index}"]`);
+            if (!container) return;
             const isSelected = this.captchaSelectedImages.includes(index);
             
             if (isSelected) {
@@ -1396,10 +1423,15 @@
             this.captchaNonPeopleImages = [];
             this.captchaNonHumanImages = [];
             var grid = document.getElementById('behuman-captcha-grid');
+            var controls = document.querySelector('.behuman-captcha-controls');
+            var verifying = document.getElementById('behuman-captcha-verifying');
+            if (grid) grid.style.display = '';
+            if (controls) controls.style.display = '';
+            if (verifying) verifying.classList.remove('active');
             if (grid) grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             var self = this;
             var p = this.preloadCaptchaImages();
-            var timeout = new Promise(function(_, reject) { setTimeout(function() { reject(new Error('timeout')); }, 8000); });
+            var timeout = new Promise(function(_, reject) { setTimeout(function() { reject(new Error('timeout')); }, 5000); });
             Promise.race([p, timeout]).then(function() { self.loadCaptchaImages(); }).catch(function() { self.loadCaptchaImages(); });
         },
         
