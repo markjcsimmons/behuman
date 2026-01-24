@@ -27,9 +27,25 @@ function listImages(dir, prefix) {
     .map((n) => prefix + n);
 }
 
+function readExclude(relativeDir) {
+  const dir = path.join(ROOT, relativeDir);
+  const f = path.join(dir, 'EXCLUDE.txt');
+  if (!fs.existsSync(f)) return new Set();
+  return new Set(
+    fs.readFileSync(f, 'utf8')
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter((s) => s && !s.startsWith('#'))
+  );
+}
+
 function buildManifest() {
+  const peopleRaw = listImages('captcha-images/people', 'captcha-images/people/');
+  const peopleExclude = readExclude('captcha-images/people');
+  const people = peopleRaw.filter((p) => !peopleExclude.has(path.basename(p)));
+
   return {
-    people: listImages('captcha-images/people', 'captcha-images/people/'),
+    people,
     nonpeople: listImages('captcha-images/nonpeople', 'captcha-images/nonpeople/'),
     nonhumans: listImages('nonhumans', 'nonhumans/'),
   };

@@ -1,0 +1,4 @@
+# List one filename per line. These are omitted from the "people" pool.
+# Add any image that does not clearly show a human (e.g. animals, blurry, partial).
+# Run: node scripts/update-captcha-manifest.js (or use the watch) after editing.
+people_41 2.jpg
