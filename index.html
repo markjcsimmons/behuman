@@ -1412,7 +1412,7 @@
                 const shuffledPeople = shuffleArray(validPeopleImages).slice(0, Math.min(numPeopleImages, validPeopleImages.length));
                 const shuffledNonPeople = shuffleArray(validNonPeopleImages).slice(0, Math.min(numNonPeopleImages, validNonPeopleImages.length));
                 
-                // Add one random non-human image from captcha-images folder
+                // Add one random non-human image from nonhumans folder
                 const randomNonHumanImage = validNonHumanImages.length > 0 
                     ? validNonHumanImages[Math.floor(Math.random() * validNonHumanImages.length)]
                     : null;
@@ -1443,12 +1443,16 @@
                 captchaNonPeopleImages = [];
                 captchaNonHumanImages = [];
                 shuffledAllImages.forEach((url, index) => {
-                    if (shuffledPeople.includes(url)) {
-                        captchaCorrectImages.push(index);
-                    } else if (shuffledNonPeople.includes(url)) {
-                        captchaNonPeopleImages.push(index);
-                    } else if (url === randomNonHumanImage) {
+                    if (url === randomNonHumanImage || url.startsWith('nonhumans/')) {
                         captchaNonHumanImages.push(index);
+                    } else if (url.startsWith('captcha-images/people/') || shuffledPeople.includes(url)) {
+                        captchaCorrectImages.push(index);
+                    } else if (url.startsWith('captcha-images/nonpeople/') || shuffledNonPeople.includes(url)) {
+                        captchaNonPeopleImages.push(index);
+                    } else if (url.includes('/people/') || url.includes('people_')) {
+                        captchaCorrectImages.push(index);
+                    } else if (url.includes('/nonpeople/') || url.includes('nonpeople_')) {
+                        captchaNonPeopleImages.push(index);
                     }
                 });
                 

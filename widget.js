@@ -1204,12 +1204,22 @@
                 const nonHumanIndices = [];
                 
                 validImages.forEach((url, index) => {
+                    // Check non-human first (most specific); use URL pattern so replacements are classified
                     if (url === randomNonHumanImage || url.startsWith('nonhumans/')) {
                         nonHumanIndices.push(index);
-                    } else if (shuffledPeople.includes(url)) {
+                    } else if (url.startsWith('captcha-images/people/') || shuffledPeople.includes(url)) {
                         correctImages.push(index);
-                    } else if (shuffledNonPeople.includes(url)) {
+                    } else if (url.startsWith('captcha-images/nonpeople/') || shuffledNonPeople.includes(url)) {
                         nonPeopleIndices.push(index);
+                    } else {
+                        // Unknown/replacement: classify by URL pattern
+                        if (url.includes('/people/') || url.includes('people_')) {
+                            correctImages.push(index);
+                        } else if (url.includes('/nonpeople/') || url.includes('nonpeople_')) {
+                            nonPeopleIndices.push(index);
+                        } else if (url.startsWith('nonhumans/')) {
+                            nonHumanIndices.push(index);
+                        }
                     }
                 });
                 
@@ -1429,12 +1439,16 @@
                 this.captchaNonPeopleImages = [];
                 this.captchaNonHumanImages = [];
                 allImages.forEach((url, index) => {
-                    if (shuffledPeople.includes(url)) {
-                        this.captchaCorrectImages.push(index);
-                    } else if (shuffledNonPeople.includes(url)) {
-                        this.captchaNonPeopleImages.push(index);
-                    } else if (url === randomNonHumanImage) {
+                    if (url === randomNonHumanImage || url.startsWith('nonhumans/')) {
                         this.captchaNonHumanImages.push(index);
+                    } else if (url.startsWith('captcha-images/people/') || shuffledPeople.includes(url)) {
+                        this.captchaCorrectImages.push(index);
+                    } else if (url.startsWith('captcha-images/nonpeople/') || shuffledNonPeople.includes(url)) {
+                        this.captchaNonPeopleImages.push(index);
+                    } else if (url.includes('/people/') || url.includes('people_')) {
+                        this.captchaCorrectImages.push(index);
+                    } else if (url.includes('/nonpeople/') || url.includes('nonpeople_')) {
+                        this.captchaNonPeopleImages.push(index);
                     }
                 });
                 
@@ -1533,7 +1547,10 @@
             // Check if ONLY people images are selected (no extra images)
             const onlyPeopleSelected = this.captchaSelectedImages.length === this.captchaCorrectImages.length;
             
-            if (allPeopleSelected && onlyPeopleSelected) {
+            const noNonPeopleSelected = !this.captchaNonPeopleImages.some(idx => this.captchaSelectedImages.includes(idx));
+            const noNonHumanSelected = !this.captchaNonHumanImages.some(idx => this.captchaSelectedImages.includes(idx));
+            
+            if (allPeopleSelected && onlyPeopleSelected && noNonPeopleSelected && noNonHumanSelected) {
                 // ALL people images are selected AND no other images are selected - verified
                 // Verifying state should already be showing from submitCaptcha()
                 const verifying = document.getElementById('behuman-captcha-verifying');
