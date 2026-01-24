@@ -585,7 +585,9 @@
             document.getElementById('statements-screen').style.display = 'block';
             document.getElementById('result-screen').style.display = 'none';
             
-            // Start preloading CAPTCHA images in the background
+            // Every time user clicks "Click here to begin": start a fresh preload from the 3 folders.
+            // Low-res images should complete within 2s; Submit will wait if needed.
+            preloadedCaptchaData = null;
             preloadCaptchaImages();
         }
 
@@ -621,7 +623,7 @@
                         } else {
                             // Wait for images to finish loading (with timeout)
                             let waitCount = 0;
-                            const maxWait = 30; // 3 seconds max (reduced from 10s)
+                            const maxWait = 20; // 2 seconds max (low-res preload)
                             while (preloadedCaptchaData && !preloadedCaptchaData.loaded && waitCount < maxWait) {
                                 await new Promise(resolve => setTimeout(resolve, 100));
                                 waitCount++;
@@ -675,16 +677,7 @@
                 
                 // Add a small delay to ensure grid is fully rendered before continuing
                 await new Promise(resolve => setTimeout(resolve, 100));
-                
-                // Preload fresh images in background for potential retry (after a longer delay)
-                // This allows loadCaptchaImages to finish using current preloaded data first
-                setTimeout(() => {
-                    // Only clear and reload if preloaded data still exists (wasn't already used/cleared)
-                    if (preloadedCaptchaData) {
-                        preloadedCaptchaData = null;
-                        preloadCaptchaImages();
-                    }
-                }, 2000);
+                // Next preload happens on next "Click here to begin" only.
             } else {
                 // Show robot screen
                 showResult(false);
@@ -773,11 +766,7 @@
             document.getElementById('captcha-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
             // Note: ledger-screen was removed, so don't try to hide it
-            
-            // Start preloading images immediately when returning to home
-            // This ensures images are ready faster if user goes through flow again
-            // If already preloaded, this will return immediately
-            preloadCaptchaImages();
+            // Preload happens only on "Click here to begin" for a predictable 2s window.
         }
 
         function tryAgain() {
@@ -866,7 +855,7 @@
             if (preloadedCaptchaData && !preloadedCaptchaData.loaded) {
                 console.log('Images already loading, waiting...');
                 let waitCount = 0;
-                const maxWait = 50; // 5 seconds max wait
+                const maxWait = 20; // 2 seconds max (low-res images)
                 while (!preloadedCaptchaData.loaded && preloadedCaptchaData !== null && waitCount < maxWait) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                     waitCount++;

@@ -679,10 +679,7 @@
             if (widgetInstructions) {
                 widgetInstructions.style.display = 'none';
             }
-            
-            // Start preloading images immediately when returning to home
-            // This ensures images are ready faster if user goes through flow again
-            this.preloadCaptchaImages();
+            // Preload happens only on "Click here to begin" for a predictable 2s window.
         },
         
         // Show statements screen
@@ -691,7 +688,9 @@
             document.getElementById('behuman-statements-screen').style.display = 'block';
             document.getElementById('behuman-result-screen').style.display = 'none';
             
-            // Start preloading CAPTCHA images in the background
+            // Every time user clicks "Click here to begin": start a fresh preload from the 3 folders.
+            // Low-res images should complete within 2s; Submit will wait if needed.
+            this.preloadedCaptchaData = null;
             this.preloadCaptchaImages();
         },
         
@@ -715,13 +714,19 @@
                         submitBtn.disabled = true;
                     }
                     
-                    // Wait for preloading to complete
+                    // Wait for preloading to complete (max 2s)
                     if (!this.preloadedCaptchaData) {
                         await this.preloadCaptchaImages();
                     } else {
-                        // Wait for images to finish loading
-                        while (!this.preloadedCaptchaData.loaded) {
+                        let waitCount = 0;
+                        const maxWait = 20; // 2s
+                        while (this.preloadedCaptchaData && !this.preloadedCaptchaData.loaded && waitCount < maxWait) {
                             await new Promise(resolve => setTimeout(resolve, 100));
+                            waitCount++;
+                        }
+                        if (!this.preloadedCaptchaData || !this.preloadedCaptchaData.loaded) {
+                            this.preloadedCaptchaData = null;
+                            await this.preloadCaptchaImages();
                         }
                     }
                     
@@ -961,10 +966,20 @@
         
         // Preload CAPTCHA images (fetch data and cache images)
         preloadCaptchaImages: async function() {
-            if (this.preloadedCaptchaData) {
-                return; // Already preloading or preloaded
+            if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded) {
+                return; // Already preloaded
             }
-            
+            if (this.preloadedCaptchaData && !this.preloadedCaptchaData.loaded) {
+                let waitCount = 0;
+                const maxWait = 20; // 2s
+                while (this.preloadedCaptchaData && !this.preloadedCaptchaData.loaded && waitCount < maxWait) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    waitCount++;
+                }
+                if (this.preloadedCaptchaData && this.preloadedCaptchaData.loaded) return;
+                this.preloadedCaptchaData = null; // Timeout: start fresh
+            }
+            this.preloadedCaptchaData = { loaded: false };
             try {
                 // Static lists of actual files that exist (no dynamic testing needed)
                 const PEOPLE_IMAGES = [
@@ -1118,9 +1133,9 @@
                     return new Promise((resolve) => {
                         const img = new Image();
                         const timeout = setTimeout(() => {
-                            console.warn('Image load timeout:', url);
+                            console.warn('Image load timeout (2s):', url);
                             resolve({ url, success: false });
-                        }, 5000); // 5 second timeout
+                        }, 2000); // 2s for low-res
                         img.onload = () => {
                             clearTimeout(timeout);
                             resolve({ url, success: true });
@@ -1271,9 +1286,6 @@
                     container.appendChild(img);
                     grid.appendChild(container);
                 });
-                
-                // Clear preloaded data so next time will fetch fresh
-                this.preloadedCaptchaData = null;
             } else {
                 // Fallback: load on demand if not preloaded
                 this.loadCaptchaImagesAsync();
@@ -1290,25 +1302,111 @@
             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">Loading images...</div>';
             
             try {
-                // Generate arrays of local image paths
-                const peopleImages = [];
-                const nonPeopleImages = [];
-                
-                // People images: check 1-45 (actual: 43 files exist, max number is 45)
-                for (let i = 1; i <= 45; i++) {
-                    peopleImages.push(`captcha-images/people/people_${i}.jpg`);
-                }
-                
-                // Non-people images: check 1-155 (actual: 125 files exist, max number is 155)
-                for (let i = 1; i <= 155; i++) {
-                    nonPeopleImages.push(`captcha-images/nonpeople/nonpeople_${i}.jpg`);
-                }
-                
-                // Select exactly 3 images from people folder, 5 from non-people folder, and 1 from nonhumans folder
-                const numPeopleImages = 3; // 3 people images
-                const numNonPeopleImages = 5; // 5 non-people images
-                
-                // Fisher-Yates shuffle function for truly random selection
+                // Static lists of existing files (same as preload) – no 404s
+                const PEOPLE_IMAGES = [
+                    'captcha-images/people/people_1.jpg', 'captcha-images/people/people_2.jpg', 'captcha-images/people/people_3.jpg',
+                    'captcha-images/people/people_4.jpg', 'captcha-images/people/people_5.jpg', 'captcha-images/people/people_6.jpg',
+                    'captcha-images/people/people_7.jpg', 'captcha-images/people/people_8.jpg', 'captcha-images/people/people_9.jpg',
+                    'captcha-images/people/people_10.jpg', 'captcha-images/people/people_11.jpg', 'captcha-images/people/people_12.jpg',
+                    'captcha-images/people/people_13.jpg', 'captcha-images/people/people_14.jpg', 'captcha-images/people/people_15.jpg',
+                    'captcha-images/people/people_16.jpg', 'captcha-images/people/people_17.jpg', 'captcha-images/people/people_18.jpg',
+                    'captcha-images/people/people_19.jpg', 'captcha-images/people/people_20.jpg', 'captcha-images/people/people_21.jpg',
+                    'captcha-images/people/people_22.jpg', 'captcha-images/people/people_23.jpg', 'captcha-images/people/people_25.jpg',
+                    'captcha-images/people/people_26.jpg', 'captcha-images/people/people_27.jpg', 'captcha-images/people/people_28.jpg',
+                    'captcha-images/people/people_29.jpg', 'captcha-images/people/people_31.jpg', 'captcha-images/people/people_32.jpg',
+                    'captcha-images/people/people_33.jpg', 'captcha-images/people/people_34.jpg', 'captcha-images/people/people_35.jpg',
+                    'captcha-images/people/people_36.jpg', 'captcha-images/people/people_37.jpg', 'captcha-images/people/people_38.jpg',
+                    'captcha-images/people/people_39.jpg', 'captcha-images/people/people_40.jpg', 'captcha-images/people/people_41.jpg',
+                    'captcha-images/people/people_42.jpg', 'captcha-images/people/people_43.jpg', 'captcha-images/people/people_44.jpg',
+                    'captcha-images/people/people_45.jpg', 'captcha-images/people/people_46.jpg', 'captcha-images/people/people_47.jpg',
+                    'captcha-images/people/people_48.jpg', 'captcha-images/people/people_49.jpg', 'captcha-images/people/people_50.jpg',
+                    'captcha-images/people/people_51.jpg', 'captcha-images/people/people_52.jpg', 'captcha-images/people/people_53.jpg',
+                    'captcha-images/people/people_54.jpg', 'captcha-images/people/people_55.jpg', 'captcha-images/people/people_56.jpg',
+                    'captcha-images/people/people_57.jpg', 'captcha-images/people/people_58.jpg', 'captcha-images/people/people_59.jpg',
+                    'captcha-images/people/people_60.jpg', 'captcha-images/people/people_61.jpg', 'captcha-images/people/people_62.jpg',
+                    'captcha-images/people/people_63.jpg', 'captcha-images/people/people_64.jpg', 'captcha-images/people/people_65.jpg',
+                    'captcha-images/people/people_66.jpg', 'captcha-images/people/people_67.jpg', 'captcha-images/people/people_68.jpg',
+                    'captcha-images/people/people_69.jpg', 'captcha-images/people/people_70.jpg', 'captcha-images/people/people_71.jpg',
+                    'captcha-images/people/people_72.jpg', 'captcha-images/people/people_73.jpg', 'captcha-images/people/people_74.jpg',
+                    'captcha-images/people/people_75.jpg', 'captcha-images/people/people_76.jpg', 'captcha-images/people/people_77.jpg',
+                    'captcha-images/people/people_78.jpg', 'captcha-images/people/people_79.jpg', 'captcha-images/people/people_80.jpg',
+                    'captcha-images/people/people_81.jpg', 'captcha-images/people/people_82.jpg', 'captcha-images/people/people_83.jpg',
+                    'captcha-images/people/people_84.jpg', 'captcha-images/people/people_85.jpg', 'captcha-images/people/people_86.jpg',
+                    'captcha-images/people/people_87.jpg', 'captcha-images/people/people_88.jpg', 'captcha-images/people/people_89.jpg',
+                    'captcha-images/people/people_90.jpg', 'captcha-images/people/people_91.jpg', 'captcha-images/people/people_92.jpg',
+                    'captcha-images/people/people_93.jpg'
+                ];
+                const NON_PEOPLE_IMAGES = [
+                    'captcha-images/nonpeople/nonpeople_1.jpg', 'captcha-images/nonpeople/nonpeople_2.jpg', 'captcha-images/nonpeople/nonpeople_3.jpg',
+                    'captcha-images/nonpeople/nonpeople_4.jpg', 'captcha-images/nonpeople/nonpeople_5.jpg', 'captcha-images/nonpeople/nonpeople_6.jpg',
+                    'captcha-images/nonpeople/nonpeople_7.jpg', 'captcha-images/nonpeople/nonpeople_11.jpg', 'captcha-images/nonpeople/nonpeople_12.jpg',
+                    'captcha-images/nonpeople/nonpeople_14.jpg', 'captcha-images/nonpeople/nonpeople_15.jpg', 'captcha-images/nonpeople/nonpeople_16.jpg',
+                    'captcha-images/nonpeople/nonpeople_17.jpg', 'captcha-images/nonpeople/nonpeople_18.jpg', 'captcha-images/nonpeople/nonpeople_19.jpg',
+                    'captcha-images/nonpeople/nonpeople_20.jpg', 'captcha-images/nonpeople/nonpeople_21.jpg', 'captcha-images/nonpeople/nonpeople_22.jpg',
+                    'captcha-images/nonpeople/nonpeople_23.jpg', 'captcha-images/nonpeople/nonpeople_24.jpg', 'captcha-images/nonpeople/nonpeople_25.jpg',
+                    'captcha-images/nonpeople/nonpeople_27.jpg', 'captcha-images/nonpeople/nonpeople_28.jpg', 'captcha-images/nonpeople/nonpeople_29.jpg',
+                    'captcha-images/nonpeople/nonpeople_30.jpg', 'captcha-images/nonpeople/nonpeople_31.jpg', 'captcha-images/nonpeople/nonpeople_32.jpg',
+                    'captcha-images/nonpeople/nonpeople_33.jpg', 'captcha-images/nonpeople/nonpeople_34.jpg', 'captcha-images/nonpeople/nonpeople_35.jpg',
+                    'captcha-images/nonpeople/nonpeople_36.jpg', 'captcha-images/nonpeople/nonpeople_37.jpg', 'captcha-images/nonpeople/nonpeople_38.jpg',
+                    'captcha-images/nonpeople/nonpeople_40.jpg', 'captcha-images/nonpeople/nonpeople_41.jpg', 'captcha-images/nonpeople/nonpeople_43.jpg',
+                    'captcha-images/nonpeople/nonpeople_44.jpg', 'captcha-images/nonpeople/nonpeople_45.jpg', 'captcha-images/nonpeople/nonpeople_46.jpg',
+                    'captcha-images/nonpeople/nonpeople_47.jpg', 'captcha-images/nonpeople/nonpeople_49.jpg', 'captcha-images/nonpeople/nonpeople_53.jpg',
+                    'captcha-images/nonpeople/nonpeople_55.jpg', 'captcha-images/nonpeople/nonpeople_56.jpg', 'captcha-images/nonpeople/nonpeople_57.jpg',
+                    'captcha-images/nonpeople/nonpeople_59.jpg', 'captcha-images/nonpeople/nonpeople_60.jpg', 'captcha-images/nonpeople/nonpeople_61.jpg',
+                    'captcha-images/nonpeople/nonpeople_62.jpg', 'captcha-images/nonpeople/nonpeople_63.jpg', 'captcha-images/nonpeople/nonpeople_64.jpg',
+                    'captcha-images/nonpeople/nonpeople_66.jpg', 'captcha-images/nonpeople/nonpeople_67.jpg', 'captcha-images/nonpeople/nonpeople_68.jpg',
+                    'captcha-images/nonpeople/nonpeople_69.jpg', 'captcha-images/nonpeople/nonpeople_71.jpg', 'captcha-images/nonpeople/nonpeople_72.jpg',
+                    'captcha-images/nonpeople/nonpeople_73.jpg', 'captcha-images/nonpeople/nonpeople_74.jpg', 'captcha-images/nonpeople/nonpeople_77.jpg',
+                    'captcha-images/nonpeople/nonpeople_78.jpg', 'captcha-images/nonpeople/nonpeople_79.jpg', 'captcha-images/nonpeople/nonpeople_80.jpg',
+                    'captcha-images/nonpeople/nonpeople_81.jpg', 'captcha-images/nonpeople/nonpeople_82.jpg', 'captcha-images/nonpeople/nonpeople_83.jpg',
+                    'captcha-images/nonpeople/nonpeople_84.jpg', 'captcha-images/nonpeople/nonpeople_85.jpg', 'captcha-images/nonpeople/nonpeople_86.jpg',
+                    'captcha-images/nonpeople/nonpeople_88.jpg', 'captcha-images/nonpeople/nonpeople_90.jpg', 'captcha-images/nonpeople/nonpeople_91.jpg',
+                    'captcha-images/nonpeople/nonpeople_92.jpg', 'captcha-images/nonpeople/nonpeople_93.jpg', 'captcha-images/nonpeople/nonpeople_95.jpg',
+                    'captcha-images/nonpeople/nonpeople_96.jpg', 'captcha-images/nonpeople/nonpeople_98.jpg', 'captcha-images/nonpeople/nonpeople_99.jpg',
+                    'captcha-images/nonpeople/nonpeople_100.jpg', 'captcha-images/nonpeople/nonpeople_103.jpg', 'captcha-images/nonpeople/nonpeople_104.jpg',
+                    'captcha-images/nonpeople/nonpeople_105.jpg', 'captcha-images/nonpeople/nonpeople_106.jpg', 'captcha-images/nonpeople/nonpeople_108.jpg',
+                    'captcha-images/nonpeople/nonpeople_109.jpg', 'captcha-images/nonpeople/nonpeople_110.jpg', 'captcha-images/nonpeople/nonpeople_111.jpg',
+                    'captcha-images/nonpeople/nonpeople_112.jpg', 'captcha-images/nonpeople/nonpeople_113.jpg', 'captcha-images/nonpeople/nonpeople_115.jpg',
+                    'captcha-images/nonpeople/nonpeople_116.jpg', 'captcha-images/nonpeople/nonpeople_117.jpg', 'captcha-images/nonpeople/nonpeople_118.jpg',
+                    'captcha-images/nonpeople/nonpeople_120.jpg', 'captcha-images/nonpeople/nonpeople_121.jpg', 'captcha-images/nonpeople/nonpeople_124.jpg',
+                    'captcha-images/nonpeople/nonpeople_125.jpg', 'captcha-images/nonpeople/nonpeople_126.jpg', 'captcha-images/nonpeople/nonpeople_127.jpg',
+                    'captcha-images/nonpeople/nonpeople_129.jpg', 'captcha-images/nonpeople/nonpeople_130.jpg', 'captcha-images/nonpeople/nonpeople_131.jpg',
+                    'captcha-images/nonpeople/nonpeople_132.jpg', 'captcha-images/nonpeople/nonpeople_133.jpg', 'captcha-images/nonpeople/nonpeople_134.jpg',
+                    'captcha-images/nonpeople/nonpeople_135.jpg', 'captcha-images/nonpeople/nonpeople_136.jpg', 'captcha-images/nonpeople/nonpeople_137.jpg',
+                    'captcha-images/nonpeople/nonpeople_138.jpg', 'captcha-images/nonpeople/nonpeople_139.jpg', 'captcha-images/nonpeople/nonpeople_140.jpg',
+                    'captcha-images/nonpeople/nonpeople_141.jpg', 'captcha-images/nonpeople/nonpeople_142.jpg', 'captcha-images/nonpeople/nonpeople_143.jpg',
+                    'captcha-images/nonpeople/nonpeople_144.jpg', 'captcha-images/nonpeople/nonpeople_146.jpg', 'captcha-images/nonpeople/nonpeople_147.jpg',
+                    'captcha-images/nonpeople/nonpeople_148.jpg', 'captcha-images/nonpeople/nonpeople_149.jpg', 'captcha-images/nonpeople/nonpeople_150.jpg',
+                    'captcha-images/nonpeople/nonpeople_151.jpg', 'captcha-images/nonpeople/nonpeople_152.jpg', 'captcha-images/nonpeople/nonpeople_153.jpg',
+                    'captcha-images/nonpeople/nonpeople_154.jpg', 'captcha-images/nonpeople/nonpeople_155.jpg',
+                    'captcha-images/nonpeople/nonpeople_156.jpg', 'captcha-images/nonpeople/nonpeople_157.jpg', 'captcha-images/nonpeople/nonpeople_158.jpg',
+                    'captcha-images/nonpeople/nonpeople_159.jpg', 'captcha-images/nonpeople/nonpeople_160.jpg', 'captcha-images/nonpeople/nonpeople_161.jpg',
+                    'captcha-images/nonpeople/nonpeople_162.jpg', 'captcha-images/nonpeople/nonpeople_163.jpg', 'captcha-images/nonpeople/nonpeople_164.jpg',
+                    'captcha-images/nonpeople/nonpeople_165.jpg', 'captcha-images/nonpeople/nonpeople_166.jpg', 'captcha-images/nonpeople/nonpeople_167.jpg',
+                    'captcha-images/nonpeople/nonpeople_168.jpg', 'captcha-images/nonpeople/nonpeople_169.jpg', 'captcha-images/nonpeople/nonpeople_170.jpg',
+                    'captcha-images/nonpeople/nonpeople_171.jpg', 'captcha-images/nonpeople/nonpeople_172.jpg', 'captcha-images/nonpeople/nonpeople_173.jpg',
+                    'captcha-images/nonpeople/nonpeople_174.jpg', 'captcha-images/nonpeople/nonpeople_175.jpg',
+                    'captcha-images/nonpeople/nonpeople_176.jpg', 'captcha-images/nonpeople/nonpeople_177.jpg', 'captcha-images/nonpeople/nonpeople_178.jpg',
+                    'captcha-images/nonpeople/nonpeople_179.jpg', 'captcha-images/nonpeople/nonpeople_180.jpg', 'captcha-images/nonpeople/nonpeople_181.jpg',
+                    'captcha-images/nonpeople/nonpeople_182.jpg', 'captcha-images/nonpeople/nonpeople_183.jpg', 'captcha-images/nonpeople/nonpeople_184.jpg',
+                    'captcha-images/nonpeople/nonpeople_185.jpg', 'captcha-images/nonpeople/nonpeople_186.jpg', 'captcha-images/nonpeople/nonpeople_187.jpg',
+                    'captcha-images/nonpeople/nonpeople_188.jpg', 'captcha-images/nonpeople/nonpeople_189.jpg', 'captcha-images/nonpeople/nonpeople_190.jpg',
+                    'captcha-images/nonpeople/nonpeople_191.jpg', 'captcha-images/nonpeople/nonpeople_192.jpg', 'captcha-images/nonpeople/nonpeople_193.jpg',
+                    'captcha-images/nonpeople/nonpeople_194.jpg', 'captcha-images/nonpeople/nonpeople_195.jpg', 'captcha-images/nonpeople/nonpeople_196.jpg',
+                    'captcha-images/nonpeople/nonpeople_197.jpg', 'captcha-images/nonpeople/nonpeople_198.jpg', 'captcha-images/nonpeople/nonpeople_199.jpg',
+                    'captcha-images/nonpeople/nonpeople_200.jpg', 'captcha-images/nonpeople/nonpeople_201.jpg', 'captcha-images/nonpeople/nonpeople_202.jpg',
+                    'captcha-images/nonpeople/nonpeople_203.jpg', 'captcha-images/nonpeople/nonpeople_204.jpg', 'captcha-images/nonpeople/nonpeople_205.jpg',
+                    'captcha-images/nonpeople/nonpeople_206.jpg', 'captcha-images/nonpeople/nonpeople_207.jpg', 'captcha-images/nonpeople/nonpeople_208.jpg',
+                    'captcha-images/nonpeople/nonpeople_209.jpg', 'captcha-images/nonpeople/nonpeople_210.jpg', 'captcha-images/nonpeople/nonpeople_211.jpg',
+                    'captcha-images/nonpeople/nonpeople_212.jpg', 'captcha-images/nonpeople/nonpeople_213.jpg', 'captcha-images/nonpeople/nonpeople_214.jpg',
+                    'captcha-images/nonpeople/nonpeople_215.jpg', 'captcha-images/nonpeople/nonpeople_216.jpg', 'captcha-images/nonpeople/nonpeople_217.jpg',
+                    'captcha-images/nonpeople/nonpeople_218.jpg', 'captcha-images/nonpeople/nonpeople_219.jpg', 'captcha-images/nonpeople/nonpeople_220.jpg',
+                    'captcha-images/nonpeople/nonpeople_221.jpg', 'captcha-images/nonpeople/nonpeople_222.jpg', 'captcha-images/nonpeople/nonpeople_223.jpg',
+                    'captcha-images/nonpeople/nonpeople_224.jpg', 'captcha-images/nonpeople/nonpeople_225.jpg', 'captcha-images/nonpeople/nonpeople_226.jpg',
+                    'captcha-images/nonpeople/nonpeople_227.jpg'
+                ];
+                const numPeopleImages = 3;
+                const numNonPeopleImages = 5;
                 function shuffleArray(array) {
                     const shuffled = [...array];
                     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -1317,10 +1415,8 @@
                     }
                     return shuffled;
                 }
-                
-                // Shuffle and select random images using proper Fisher-Yates shuffle
-                const shuffledPeople = shuffleArray(peopleImages).slice(0, numPeopleImages);
-                const shuffledNonPeople = shuffleArray(nonPeopleImages).slice(0, numNonPeopleImages);
+                const shuffledPeople = shuffleArray(PEOPLE_IMAGES).slice(0, numPeopleImages);
+                const shuffledNonPeople = shuffleArray(NON_PEOPLE_IMAGES).slice(0, numNonPeopleImages);
                 
                 // Add one random non-human image
                 const randomNonHumanImage = this.nonHumanImages[Math.floor(Math.random() * this.nonHumanImages.length)];
