@@ -582,6 +582,10 @@
     <script>
         var ASSET_BASE = 'https://markjcsimmons.github.io/behuman';
         if (window.location && window.location.protocol !== 'file:' && window.location.origin === 'https://markjcsimmons.github.io') ASSET_BASE = '';
+        // Force canonical asset host when self-hosted to avoid stale/missing images.
+        if (window.location && window.location.protocol !== 'file:' && window.location.origin !== 'https://markjcsimmons.github.io') {
+            ASSET_BASE = 'https://markjcsimmons.github.io/behuman';
+        }
         function assetUrl(p) { return (ASSET_BASE ? ASSET_BASE + '/' : '') + p; }
         function encodeImageSrc(p) { if (!p || typeof p !== 'string') return ''; return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
         function showStatements() {

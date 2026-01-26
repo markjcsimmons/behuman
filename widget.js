@@ -3,7 +3,14 @@
     var BehumanBase = '';
     try { var s = document.currentScript; if (s && s.src) { BehumanBase = s.src.replace(/\/[^/]*$/, ''); if (BehumanBase && BehumanBase.indexOf('file:') === 0) BehumanBase = 'https://markjcsimmons.github.io/behuman'; } } catch (e) {}
     function encodeImageSrc(p) { if (!p || typeof p !== 'string') return ''; return p.split('/').map(function(s){ return encodeURIComponent(s); }).join('/'); }
-    function assetUrl(p) { var b = BehumanBase || 'https://markjcsimmons.github.io/behuman'; return (b ? b + '/' : '') + p; }
+    function assetUrl(p) {
+        var b = BehumanBase || 'https://markjcsimmons.github.io/behuman';
+        // Force canonical asset host when widget is self-hosted.
+        if (b && b.indexOf('https://markjcsimmons.github.io/behuman') !== 0) {
+            b = 'https://markjcsimmons.github.io/behuman';
+        }
+        return (b ? b + '/' : '') + p;
+    }
     // Namespace to avoid conflicts
     const BeHuman = {
         initialized: false,
